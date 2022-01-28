@@ -1,19 +1,20 @@
-import { getCars } from '../../../api/api';
+import { useEffect, useState } from 'react';
+import { getCars, ICar } from '../../../api/api';
 import { FormField } from '../FormField/FormField';
 import { Track } from '../Track/Track';
 import styles from './Garage.styles.css';
 
-export const Garage = () => {
-  async function getCarsAmountInGarage() {
-    const data = await getCars(1);
-    return data.items.length;
-  }
+export const Garage = (): JSX.Element => {
+  const [carNumber, setCarNumber] = useState(0);
+  const [carsArray, setCarsArray] = useState<ICar[]>([]);
 
-  const renderCars = async () => {
-    const num = await getCarsAmountInGarage();
-    console.log(num);
-    return new Array(num).fill(num).map(() => <Track />);
-  };
+  async function getGarageState(): Promise<void> {
+    const { count: carCount, items: cars } = await getCars(1);
+    // console.log(cars);
+    if (carCount) setCarNumber(+carCount);
+    if (cars) setCarsArray(cars);
+  }
+  // getGarageState();
 
   return (
     <>
@@ -25,9 +26,12 @@ export const Garage = () => {
         <button className={styles.controlsBtn}>Generate cars</button>
       </section>
       <h2>
-        Garage <span>(0)</span>
+        Garage <span>({carNumber})</span>
       </h2>
-      <Track />
+      <p>Page #1</p>
+      {carsArray.map((el) => (
+        <Track key={el.id} name={el.name} color={el.color} />
+      ))}
       <div>
         <button>prev</button>
         <button>next</button>

@@ -1,7 +1,7 @@
 const base = 'http://127.0.0.1:3000';
 const garage = `${base}/garage`;
 
-interface ICar {
+export interface ICar {
   name: string;
   color: string;
   id: number;
