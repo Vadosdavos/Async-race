@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getCars, ICar } from '../../../api/api';
+import { deleteCar, getCars, ICar } from '../../../api/api';
 import { FormField } from '../FormField/FormField';
 import { Track } from '../Track/Track';
 import styles from './Garage.styles.css';
@@ -10,11 +10,17 @@ export const Garage = (): JSX.Element => {
 
   async function getGarageState(): Promise<void> {
     const { count: carCount, items: cars } = await getCars(1);
-    // console.log(cars);
     if (carCount) setCarNumber(+carCount);
     if (cars) setCarsArray(cars);
   }
-  // getGarageState();
+  useEffect(() => {
+    getGarageState();
+  }, [carNumber]);
+
+  const handleRemove = (id: number) => {
+    deleteCar(id);
+    setCarNumber(carNumber - 1);
+  };
 
   return (
     <>
@@ -29,9 +35,8 @@ export const Garage = (): JSX.Element => {
         Garage <span>({carNumber})</span>
       </h2>
       <p>Page #1</p>
-      {carsArray.map((el) => (
-        <Track key={el.id} name={el.name} color={el.color} />
-      ))}
+      {carsArray.length > 0 &&
+        carsArray.map((el) => <Track key={el.id} name={el.name} color={el.color} id={el.id} onDelete={handleRemove} />)}
       <div>
         <button>prev</button>
         <button>next</button>
