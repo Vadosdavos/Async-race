@@ -1,26 +1,21 @@
-import { getCars } from '../../../api/api';
+import { SyntheticEvent } from 'react';
 import styles from './FormField.styles.css';
 
 type FormProps = {
   type: string;
+  handleTextInput: (event: SyntheticEvent) => void;
+  handleColorInput: (event: SyntheticEvent) => void;
+  handleClick: () => void
 };
 
-export const FormField = ({ type }: FormProps) => {
-  function bar() {
-    console.log('bar');
-  }
-  function foo() {
-    console.log('foo');
-  }
+export const FormField = ({ type, handleTextInput, handleColorInput, handleClick }: FormProps) => {
 
   return (
     <>
       <div className={styles.formField}>
-        <input type='text' className={styles.textInput + ' ' + styles[type]} />
-        <input type='color' className='colorInput' />
-        <button onClick={type === 'create' ? bar : foo} className={styles.subButton}>
-          {type}
-        </button>
+        <input type='text' className={`${styles.textInput} ${styles[type]}`} onBlur={handleTextInput} />
+        <input type='color' className='colorInput' onBlur={handleColorInput} />
+        <button className={styles.subButton} onClick={handleClick}>{type}</button>
       </div>
     </>
   );

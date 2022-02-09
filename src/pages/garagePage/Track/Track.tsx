@@ -1,4 +1,3 @@
-import { deleteCar } from '../../../api/api';
 import { Car } from '../Car/Car';
 import styles from './Track.styles.css';
 
