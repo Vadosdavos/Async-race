@@ -23,6 +23,8 @@ export const getCars = async (page: number, limit: number = 7): Promise<IGarage>
   };
 };
 
+export const getCar = async (id: number) => (await fetch(`${garage}/${id}`)).json();
+
 export const setCar = async (body: ICarSet) =>
   (
     await fetch(garage, {

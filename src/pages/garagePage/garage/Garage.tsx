@@ -18,17 +18,15 @@ export const Garage = (): JSX.Element => {
   }
 
   useEffect(() => {
-    console.log('update');
     getGarageState();
-  }, [carNumber]);
-
-  // to do: Добавление машинки по 1 getCar
+  }, []);
 
   const handleDelete = (id: number) => {
     deleteCar(id);
     setCarNumber((prevCarNumber) => prevCarNumber - 1);
+    const index = carsArray.findIndex((el) => el.id === id);
+    setCarsArray((prevCarsArray) => [...prevCarsArray.slice(0, index), ...prevCarsArray.slice(index + 1)]);
   };
-
   const handleTextInput = (event: SyntheticEvent) => {
     const target = event.currentTarget as HTMLInputElement;
     tempCarData.name = target.value;
@@ -37,14 +35,18 @@ export const Garage = (): JSX.Element => {
     const target = event.currentTarget as HTMLInputElement;
     tempCarData.color = target.value;
   };
-  const handleFormClick = () => {
-    setCar({
+  const handleCreateClick = () => {
+    const res = setCar({
       name: tempCarData.name,
       color: tempCarData.color,
     });
+    res.then((data: ICar) => setCarsArray((prevCarsArray) => [...prevCarsArray, data]));
     setCarNumber((prevCarNumber) => prevCarNumber + 1);
   };
-  console.log('render');
+  const handleUpdateClick = () => {
+    console.log('update car click');
+  };
+
   return (
     <>
       <section className={styles.controls}>
@@ -52,13 +54,13 @@ export const Garage = (): JSX.Element => {
           type='create'
           handleTextInput={handleTextInput}
           handleColorInput={handleColorInput}
-          handleClick={handleFormClick}
+          handleClick={handleCreateClick}
         />
         <FormField
           type='update'
           handleTextInput={handleTextInput}
           handleColorInput={handleColorInput}
-          handleClick={handleFormClick}
+          handleClick={handleUpdateClick}
         />
         <button className={styles.controlsBtn}>Race</button>
         <button className={styles.controlsBtn}>Reset</button>
