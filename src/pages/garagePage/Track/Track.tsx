@@ -6,16 +6,18 @@ type TrackProps = {
   color: string;
   id: number;
   onDelete: (id: number) => void;
+  onSelect: () => void;
 };
 
-export const Track = ({ name, color, id, onDelete }: TrackProps) => {
-
+export const Track = ({ name, color, id, onDelete, onSelect }: TrackProps): JSX.Element => {
   return (
     <>
       <section>
         <div className={styles.carContainer}>
           <div className={styles.controls}>
-            <button className={styles.selectBtn}>Select</button>
+            <button className={styles.selectBtn} onClick={onSelect}>
+              Select
+            </button>
             <button className={styles.removeBtn} onClick={() => onDelete(id)}>
               Remove
             </button>

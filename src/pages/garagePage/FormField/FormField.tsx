@@ -20,21 +20,43 @@ export const FormField = ({ type, handleTextInput, handleColorInput, handleClick
     }
   };
 
-  return (
-    <>
-      <div className={styles.formField}>
-        <input type='text' ref={nameRef} className={`${styles.textInput} ${styles[type]}`} onBlur={handleTextInput} />
-        <input type='color' ref={colorRef} className='colorInput' onBlur={handleColorInput} />
-        <button
-          className={styles.subButton}
-          onClick={() => {
-            handleClick();
-            clearInput();
-          }}
-        >
-          {type}
-        </button>
-      </div>
-    </>
-  );
+  if (type === 'create') {
+    return (
+      <>
+        <div className={styles.formField}>
+          <input type='text' ref={nameRef} className={`${styles.textInput} ${styles[type]}`} onBlur={handleTextInput} />
+          <input type='color' ref={colorRef} className='colorInput' onBlur={handleColorInput} />
+          <button
+            className={styles.subButton}
+            onClick={() => {
+              handleClick();
+              clearInput();
+            }}
+          >
+            {type}
+          </button>
+        </div>
+      </>
+    );
+  } else {
+    return (
+      <>
+        <div className={styles.formField}>
+          <input type='text' ref={nameRef} className={`${styles.textInput} ${styles[type]}`} onBlur={handleTextInput} />
+          <input type='color' ref={colorRef} className='colorInput' onBlur={handleColorInput} />
+          <button
+            className={styles.subButton}
+            onClick={() => {
+              handleClick();
+              clearInput();
+            }}
+          >
+            {type}
+          </button>
+        </div>
+      </>
+    );
+  }
+
+  
 };

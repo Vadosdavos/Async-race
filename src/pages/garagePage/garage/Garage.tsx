@@ -46,6 +46,9 @@ export const Garage = (): JSX.Element => {
   const handleUpdateClick = () => {
     console.log('update car click');
   };
+  const handleSelect = () => {
+    console.log('select');
+  };
 
   return (
     <>
@@ -71,7 +74,16 @@ export const Garage = (): JSX.Element => {
       </h2>
       <p>Page #1</p>
       {carsArray.length > 0 &&
-        carsArray.map((el) => <Track key={el.id} name={el.name} color={el.color} id={el.id} onDelete={handleDelete} />)}
+        carsArray.map((el) => (
+          <Track
+            key={el.id}
+            name={el.name}
+            color={el.color}
+            id={el.id}
+            onDelete={handleDelete}
+            onSelect={handleSelect}
+          />
+        ))}
       <div>
         <button>prev</button>
         <button>next</button>
