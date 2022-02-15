@@ -1,5 +1,5 @@
-import { SyntheticEvent, useEffect, useState } from 'react';
-import { deleteCar, getCars, ICar, ICarSet, setCar } from '../../../api/api';
+import { SyntheticEvent, useEffect, useRef, useState } from 'react';
+import { deleteCar, getCars, ICar, ICarSet, setCar, updateCar } from '../../../api/api';
 import { FormField } from '../FormField/FormField';
 import { Track } from '../Track/Track';
 import styles from './Garage.styles.css';
@@ -8,6 +8,9 @@ export const Garage = (): JSX.Element => {
   const [carNumber, setCarNumber] = useState(0);
   const [carsArray, setCarsArray] = useState<ICar[]>([]);
   const tempCarData: ICarSet = { name: '', color: '' };
+  const updateInputRef = useRef<HTMLInputElement>(null);
+  const [colorUpdateValue, setColorUpdateValue] = useState('#000000');
+  const [tempCarId, setTempCarId] = useState(0);
 
   async function getGarageState(): Promise<void> {
     const { count: carCount, items: cars } = await getCars(1);
@@ -44,10 +47,27 @@ export const Garage = (): JSX.Element => {
     setCarNumber((prevCarNumber) => prevCarNumber + 1);
   };
   const handleUpdateClick = () => {
-    console.log('update car click');
+    updateCar(tempCarId, {
+      name: tempCarData.name,
+      color: tempCarData.color ? tempCarData.color : colorUpdateValue,
+    });
+    const index = carsArray.findIndex((el) => el.id === tempCarId);
+    setCarsArray((prevCarsArray) => {
+      prevCarsArray[index].name = tempCarData.name;
+      prevCarsArray[index].color = tempCarData.color;
+      return [...prevCarsArray];
+    });
+    const updateInputText = updateInputRef.current as HTMLInputElement;
+    updateInputText.disabled = true;
+    updateInputText.value = '';
   };
-  const handleSelect = () => {
-    console.log('select');
+  const handleSelect = (carProps: ICar) => {
+    const updateInputText = updateInputRef.current as HTMLInputElement;
+    updateInputText.focus();
+    updateInputText.disabled = false;
+    updateInputText.value = carProps.name;
+    setColorUpdateValue(carProps.color);
+    setTempCarId(carProps.id);
   };
 
   return (
@@ -58,12 +78,15 @@ export const Garage = (): JSX.Element => {
           handleTextInput={handleTextInput}
           handleColorInput={handleColorInput}
           handleClick={handleCreateClick}
+          ref={undefined}
         />
         <FormField
           type='update'
           handleTextInput={handleTextInput}
           handleColorInput={handleColorInput}
           handleClick={handleUpdateClick}
+          ref={updateInputRef}
+          colorUpdateValue={colorUpdateValue}
         />
         <button className={styles.controlsBtn}>Race</button>
         <button className={styles.controlsBtn}>Reset</button>

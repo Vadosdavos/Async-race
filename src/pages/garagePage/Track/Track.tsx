@@ -1,3 +1,4 @@
+import { ICar } from '../../../api/api';
 import { Car } from '../Car/Car';
 import styles from './Track.styles.css';
 
@@ -6,7 +7,7 @@ type TrackProps = {
   color: string;
   id: number;
   onDelete: (id: number) => void;
-  onSelect: () => void;
+  onSelect: (carProps: ICar) => void;
 };
 
 export const Track = ({ name, color, id, onDelete, onSelect }: TrackProps): JSX.Element => {
@@ -15,7 +16,7 @@ export const Track = ({ name, color, id, onDelete, onSelect }: TrackProps): JSX.
       <section>
         <div className={styles.carContainer}>
           <div className={styles.controls}>
-            <button className={styles.selectBtn} onClick={onSelect}>
+            <button className={styles.selectBtn} onClick={() => onSelect({ name, color, id })}>
               Select
             </button>
             <button className={styles.removeBtn} onClick={() => onDelete(id)}>

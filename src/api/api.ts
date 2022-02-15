@@ -42,3 +42,14 @@ export const deleteCar = async (id: number) =>
       method: 'DELETE',
     })
   ).json();
+
+export const updateCar = async (id: number, body: ICarSet) =>
+  (
+    await fetch(`${garage}/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(body),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+  ).json();

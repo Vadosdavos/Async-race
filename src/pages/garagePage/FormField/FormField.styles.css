@@ -9,6 +9,9 @@
 .create {
   background-color: aquamarine;
 }
+.update {
+  font-weight: bolder;
+}
 .subButton {
   width: 70px;
 }
