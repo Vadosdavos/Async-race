@@ -31,6 +31,9 @@ export const Garage = (): JSX.Element => {
     setCarNumber((prevCarNumber) => prevCarNumber - 1);
     const index = carsArray.findIndex((el) => el.id === id);
     setCarsArray((prevCarsArray) => [...prevCarsArray.slice(0, index), ...prevCarsArray.slice(index + 1)]);
+    if (carsArray.length === 1) {
+      setPage((prevValue) => prevValue - 1);
+    }
   };
   const handleTextInput = (event: SyntheticEvent) => {
     const target = event.currentTarget as HTMLInputElement;
@@ -135,7 +138,7 @@ export const Garage = (): JSX.Element => {
         <button
           className={styles.paginationBtn}
           onClick={handleChangePage}
-          disabled={carsArray.length < 7 || carNumber <= 7 ? true : false}
+          disabled={carNumber / 7 <= page ? true : false}
         >
           next
         </button>
