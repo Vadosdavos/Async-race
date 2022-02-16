@@ -12,9 +12,10 @@ export const Garage = (): JSX.Element => {
   const updateInputRef = useRef<HTMLInputElement>(null);
   const [colorUpdateValue, setColorUpdateValue] = useState('#000000');
   const [tempCarId, setTempCarId] = useState(0);
+  const [page, setPage] = useState(1);
 
-  async function getGarageState(): Promise<void> {
-    const { count: carCount, items: cars } = await getCars(1);
+  async function getGarageState(page: number): Promise<void> {
+    const { count: carCount, items: cars } = await getCars(page);
     if (carCount) {
       setCarNumber(+carCount);
     }
@@ -22,8 +23,8 @@ export const Garage = (): JSX.Element => {
   }
 
   useEffect(() => {
-    getGarageState();
-  }, []);
+    getGarageState(page);
+  }, [page]);
 
   const handleDelete = (id: number) => {
     deleteCar(id);
@@ -74,7 +75,18 @@ export const Garage = (): JSX.Element => {
   };
   const handleGenerateCars = () => {
     generateRandomCars().forEach((el) => setCar(el));
-    getGarageState();
+    getGarageState(page);
+  };
+  const handleChangePage = (event: SyntheticEvent) => {
+    const target = event.target as HTMLElement;
+    switch (target.textContent) {
+      case 'next':
+        setPage((prevValue) => prevValue + 1);
+        break;
+      case 'prev':
+        setPage((prevValue) => prevValue - 1);
+        break;
+    }
   };
 
   return (
@@ -104,7 +116,7 @@ export const Garage = (): JSX.Element => {
       <h2 className={styles.title}>
         Garage <span>({carNumber})</span>
       </h2>
-      <p>Page #1</p>
+      <p>Page #{page}</p>
       {carsArray.length > 0 &&
         carsArray.map((el) => (
           <Track
@@ -117,8 +129,16 @@ export const Garage = (): JSX.Element => {
           />
         ))}
       <div>
-        <button>prev</button>
-        <button>next</button>
+        <button onClick={handleChangePage} disabled={page <= 1 ? true : false}>
+          prev
+        </button>
+        <button
+          className={styles.paginationBtn}
+          onClick={handleChangePage}
+          disabled={carsArray.length < 7 || carNumber <= 7 ? true : false}
+        >
+          next
+        </button>
       </div>
     </>
   );

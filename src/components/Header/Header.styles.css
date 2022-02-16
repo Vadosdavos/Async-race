@@ -1,4 +1,6 @@
 .mainHeader {
   min-height: 5vh;
-  padding: 10px;
+  padding-left: 10px;
+  display: flex;
+  align-items: center;
 }
