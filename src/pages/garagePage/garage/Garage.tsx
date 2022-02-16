@@ -1,5 +1,6 @@
 import { SyntheticEvent, useEffect, useRef, useState } from 'react';
 import { deleteCar, getCars, ICar, ICarSet, setCar, updateCar } from '../../../api/api';
+import { generateRandomCars } from '../../../api/utils';
 import { FormField } from '../FormField/FormField';
 import { Track } from '../Track/Track';
 import styles from './Garage.styles.css';
@@ -7,7 +8,7 @@ import styles from './Garage.styles.css';
 export const Garage = (): JSX.Element => {
   const [carNumber, setCarNumber] = useState(0);
   const [carsArray, setCarsArray] = useState<ICar[]>([]);
-  const tempCarData: ICarSet = { name: '', color: '' };
+  const tempCarData: ICarSet = { name: 'testCar', color: '#ffffff' };
   const updateInputRef = useRef<HTMLInputElement>(null);
   const [colorUpdateValue, setColorUpdateValue] = useState('#000000');
   const [tempCarId, setTempCarId] = useState(0);
@@ -43,7 +44,9 @@ export const Garage = (): JSX.Element => {
       name: tempCarData.name,
       color: tempCarData.color,
     });
-    res.then((data: ICar) => setCarsArray((prevCarsArray) => [...prevCarsArray, data]));
+    if (carsArray.length < 7) {
+      res.then((data: ICar) => setCarsArray((prevCarsArray) => [...prevCarsArray, data]));
+    }
     setCarNumber((prevCarNumber) => prevCarNumber + 1);
   };
   const handleUpdateClick = () => {
@@ -69,6 +72,10 @@ export const Garage = (): JSX.Element => {
     setColorUpdateValue(carProps.color);
     setTempCarId(carProps.id);
   };
+  const handleGenerateCars = () => {
+    generateRandomCars().forEach((el) => setCar(el));
+    getGarageState();
+  };
 
   return (
     <>
@@ -90,9 +97,11 @@ export const Garage = (): JSX.Element => {
         />
         <button className={styles.controlsBtn}>Race</button>
         <button className={styles.controlsBtn}>Reset</button>
-        <button className={styles.controlsBtn}>Generate cars</button>
+        <button className={styles.controlsBtn} onClick={handleGenerateCars}>
+          Generate cars
+        </button>
       </section>
-      <h2>
+      <h2 className={styles.title}>
         Garage <span>({carNumber})</span>
       </h2>
       <p>Page #1</p>

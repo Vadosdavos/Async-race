@@ -12,3 +12,7 @@
 .controlsBtn:last-child {
   width: 140px;
 }
+.title {
+  margin: 0;
+  margin-top: 10px;
+}
