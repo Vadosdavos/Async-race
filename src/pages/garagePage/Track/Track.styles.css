@@ -43,9 +43,19 @@
   background-size: 40px 40px;
   background-repeat: no-repeat;
   background-position: right bottom;
+  height: 40px;
 }
 
 .name {
   font-weight: bold;
   color: coral;
+}
+
+.car {
+  margin-left: 5px;
+}
+.car svg {
+  display: block;
+  width: 80px;
+  height: 40px;
 }

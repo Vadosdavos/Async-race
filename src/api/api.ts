@@ -1,5 +1,6 @@
 const base = 'http://127.0.0.1:3000';
 const garage = `${base}/garage`;
+const engine = `${base}/engine`;
 
 export interface ICar extends ICarSet {
   id: number;
@@ -53,3 +54,12 @@ export const updateCar = async (id: number, body: ICarSet) =>
       },
     })
   ).json();
+
+export const startEngine = async (id: number) => (await fetch(`${engine}?id=${id}&status=started`)).json();
+
+export const stopEngine = async (id: number) => (await fetch(`${engine}?id=${id}&status=stopped`)).json();
+
+export const driveMode = async (id: number) => {
+  const res = await fetch(`${engine}?id=${id}&status=drive`).catch();
+  return res.status !== 200 ? { success: false } : { ...(await res.json()) };
+};
