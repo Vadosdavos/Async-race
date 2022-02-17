@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { ICar } from '../../../api/api';
+import { driveMode, ICar, startEngine } from '../../../api/api';
 import styles from './Track.styles.css';
 import { CarImg } from '../../../components/CarImg/CatImg';
 
@@ -14,22 +14,27 @@ type TrackProps = {
 interface IAnimate {
   duration: number;
   draw: (progress: number) => void;
-  timing: (timeFraction: number) => number;
 }
+
+const CAR_MARGIN = 180 + document.documentElement.clientWidth * 0.05;
 
 export const Track = ({ name, color, id, onDelete, onSelect }: TrackProps): JSX.Element => {
   const carRef = useRef<HTMLInputElement>(null);
+  const raceDistance = document.documentElement.clientWidth - CAR_MARGIN;
+  const obj = { success: true };
 
-  const animateCar = ({ duration, draw, timing }: IAnimate) => {
+  const animateCar = ({ duration, draw }: IAnimate) => {
     let start = performance.now();
 
     requestAnimationFrame(function animate(time) {
       let timeFraction = (time - start) / duration;
       if (timeFraction > 1) timeFraction = 1;
 
-      let progress = timing(timeFraction);
+      draw(timeFraction);
 
-      draw(progress);
+      if (!obj.success) {
+        timeFraction = 1;
+      }
 
       if (timeFraction < 1) {
         requestAnimationFrame(animate);
@@ -39,18 +44,18 @@ export const Track = ({ name, color, id, onDelete, onSelect }: TrackProps): JSX.
 
   const drawCar = (progress: number) => {
     const target = carRef.current;
+
     if (target) {
-      target.style.transform = `translateX(${progress * 1000}px)`;
+      target.style.transform = `translateX(${progress * raceDistance}px)`;
     }
   };
 
-  const linear = (timeFraction: number) => {
-    return timeFraction;
-  };
-
   const handleStartClick = () => {
-    console.log(id);
-    animateCar({ duration: 2000, draw: drawCar, timing: linear });
+    const res = startEngine(id);
+    res.then(({ distance, velocity }: { distance: number; velocity: number }) => {
+      driveMode(id).then((res: { success: boolean }) => (obj.success = res.success));
+      animateCar({ duration: distance / velocity, draw: drawCar });
+    });
   };
   return (
     <>
