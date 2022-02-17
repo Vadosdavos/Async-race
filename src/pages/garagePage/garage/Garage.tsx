@@ -1,5 +1,5 @@
 import { SyntheticEvent, useEffect, useRef, useState } from 'react';
-import { deleteCar, getCars, ICar, ICarSet, setCar, updateCar } from '../../../api/api';
+import { deleteCar, getCars, ICar, ICarSet, setCar, stopEngine, updateCar } from '../../../api/api';
 import { generateRandomCars } from '../../../api/utils';
 import { FormField } from '../FormField/FormField';
 import { Track } from '../Track/Track';
@@ -13,6 +13,7 @@ export const Garage = (): JSX.Element => {
   const [colorUpdateValue, setColorUpdateValue] = useState('#000000');
   const [tempCarId, setTempCarId] = useState(0);
   const [page, setPage] = useState(1);
+  const [isReset, setIsReset] = useState(false);
 
   async function getGarageState(page: number): Promise<void> {
     const { count: carCount, items: cars } = await getCars(page);
@@ -92,6 +93,16 @@ export const Garage = (): JSX.Element => {
     }
   };
 
+  const handleResetClick = () => {
+    setIsReset(true);
+    carsArray.forEach((el) => stopEngine(el.id));
+    setTimeout(() => {
+      setIsReset(false);
+    }, 0);
+  };
+
+  const handleRaceClick = () => {};
+
   return (
     <>
       <section className={styles.controls}>
@@ -110,8 +121,12 @@ export const Garage = (): JSX.Element => {
           ref={updateInputRef}
           colorUpdateValue={colorUpdateValue}
         />
-        <button className={styles.controlsBtn}>Race</button>
-        <button className={styles.controlsBtn}>Reset</button>
+        <button className={styles.controlsBtn} onClick={handleRaceClick}>
+          Race
+        </button>
+        <button className={styles.controlsBtn} onClick={handleResetClick}>
+          Reset
+        </button>
         <button className={styles.controlsBtn} onClick={handleGenerateCars}>
           Generate cars
         </button>
@@ -121,6 +136,7 @@ export const Garage = (): JSX.Element => {
       </h2>
       <p>Page #{page}</p>
       {carsArray.length > 0 &&
+        !isReset &&
         carsArray.map((el) => (
           <Track
             key={el.id}
