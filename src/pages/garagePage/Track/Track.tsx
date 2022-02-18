@@ -32,7 +32,7 @@ export const Track = ({ name, color, id, onDelete, onSelect }: TrackProps): JSX.
       if (timeFraction > 1) timeFraction = 1;
 
       draw(timeFraction);
-
+      console.log(obj.success);
       if (!obj.success) {
         timeFraction = 1;
       }
@@ -63,7 +63,10 @@ export const Track = ({ name, color, id, onDelete, onSelect }: TrackProps): JSX.
   const handleStopClick = () => {
     setIsCarStarted(false);
     const target = carRef.current;
-    stopEngine(id).then(() => (target ? (target.style.transform = `translateX(0)`) : null));
+    stopEngine(id).then(({ distance, velocity }: { distance: number; velocity: number }) => {
+      animateCar({ duration: distance / velocity, draw: drawCar });
+      target ? (target.style.transform = `translateX(0)`) : null;
+    });
   };
 
   return (
