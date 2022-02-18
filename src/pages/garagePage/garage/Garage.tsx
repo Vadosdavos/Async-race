@@ -31,7 +31,7 @@ export const Garage = (): JSX.Element => {
   const [tempCarId, setTempCarId] = useState(0);
   const [page, setPage] = useState(1);
   const [isReset, setIsReset] = useState(false);
-
+  const refsArray: Array<React.RefObject<HTMLDivElement>> = [];
   const raceDistance = document.documentElement.clientWidth - CAR_MARGIN;
 
   async function getGarageState(page: number): Promise<void> {
@@ -39,12 +39,19 @@ export const Garage = (): JSX.Element => {
     if (carCount) {
       setCarNumber(+carCount);
     }
-    if (cars) setCarsArray(cars);
+    if (cars) {
+      setCarsArray(cars);
+    }
   }
 
   useEffect(() => {
     getGarageState(page);
   }, [page]);
+
+  for (let i = 0; i < 7; i++) {
+    const element = useRef<HTMLDivElement>(null);
+    refsArray.push(element);
+  }
 
   const handleDelete = (id: number) => {
     deleteCar(id);
@@ -120,7 +127,16 @@ export const Garage = (): JSX.Element => {
     }, 0);
   };
 
-  const handleRaceClick = () => {};
+  const handleRaceClick = () => {
+    // refsArray.forEach((el, index) => (el.current ? handleStartClick(carsArray[index], el.current) : null));
+    const promisesArr = refsArray.map(
+      (el, index) =>
+        new Promise(() => {
+          el.current ? handleStartClick(carsArray[index], el.current) : null;
+        })
+    );
+    // Promise.all(promisesArr).then((data) => console.log(data));
+  };
 
   const animateCar = ({ duration, draw }: IAnimate, target: HTMLDivElement, stopVar: { value: boolean }) => {
     let start = performance.now();
@@ -129,7 +145,6 @@ export const Garage = (): JSX.Element => {
       let timeFraction = (time - start) / duration;
       if (timeFraction > 1) {
         timeFraction = 1;
-        console.log('finish', target);
       }
 
       if (stopVar.value) return;
@@ -155,6 +170,8 @@ export const Garage = (): JSX.Element => {
       driveMode(carProps.id).then((res: { success: boolean }) => {
         if (!res.success) {
           stopVar.value = true;
+        } else {
+          return new Promise((result) => result);
         }
       });
       animateCar({ duration: distance / velocity, draw: drawCar }, target, stopVar);
@@ -203,7 +220,7 @@ export const Garage = (): JSX.Element => {
       <p>Page #{page}</p>
       {carsArray.length > 0 &&
         !isReset &&
-        carsArray.map((el) => (
+        carsArray.map((el, index) => (
           <Track
             key={el.id}
             name={el.name}
@@ -213,6 +230,7 @@ export const Garage = (): JSX.Element => {
             onSelect={handleSelect}
             onStart={handleStartClick}
             onStop={handleStopClick}
+            ref={refsArray[index]}
           />
         ))}
       <div>
