@@ -1,9 +1,26 @@
 import { SyntheticEvent, useEffect, useRef, useState } from 'react';
-import { deleteCar, getCars, ICar, ICarSet, setCar, stopEngine, updateCar } from '../../../api/api';
+import {
+  deleteCar,
+  getCars,
+  ICar,
+  ICarSet,
+  setCar,
+  stopEngine,
+  updateCar,
+  driveMode,
+  startEngine,
+} from '../../../api/api';
 import { generateRandomCars } from '../../../api/utils';
 import { FormField } from '../FormField/FormField';
 import { Track } from '../Track/Track';
 import styles from './Garage.styles.css';
+
+interface IAnimate {
+  duration: number;
+  draw: (progress: number, target: HTMLDivElement) => void;
+}
+
+const CAR_MARGIN = 180 + document.documentElement.clientWidth * 0.05;
 
 export const Garage = (): JSX.Element => {
   const [carNumber, setCarNumber] = useState(0);
@@ -14,6 +31,8 @@ export const Garage = (): JSX.Element => {
   const [tempCarId, setTempCarId] = useState(0);
   const [page, setPage] = useState(1);
   const [isReset, setIsReset] = useState(false);
+
+  const raceDistance = document.documentElement.clientWidth - CAR_MARGIN;
 
   async function getGarageState(page: number): Promise<void> {
     const { count: carCount, items: cars } = await getCars(page);
@@ -103,6 +122,53 @@ export const Garage = (): JSX.Element => {
 
   const handleRaceClick = () => {};
 
+  const animateCar = ({ duration, draw }: IAnimate, target: HTMLDivElement, stopVar: { value: boolean }) => {
+    let start = performance.now();
+
+    requestAnimationFrame(function animate(time) {
+      let timeFraction = (time - start) / duration;
+      if (timeFraction > 1) {
+        timeFraction = 1;
+        console.log('finish', target);
+      }
+
+      if (stopVar.value) return;
+
+      draw(timeFraction, target);
+
+      if (timeFraction < 1) {
+        requestAnimationFrame(animate);
+      }
+    });
+  };
+
+  const drawCar = (progress: number, target: HTMLDivElement) => {
+    if (target) {
+      target.style.transform = `translateX(${progress * raceDistance}px)`;
+    }
+  };
+
+  const handleStartClick = (carProps: ICar, target: HTMLDivElement) => {
+    const stopVar = { value: false };
+    const res = startEngine(carProps.id);
+    res.then(({ distance, velocity }: { distance: number; velocity: number }) => {
+      driveMode(carProps.id).then((res: { success: boolean }) => {
+        if (!res.success) {
+          stopVar.value = true;
+        }
+      });
+      animateCar({ duration: distance / velocity, draw: drawCar }, target, stopVar);
+    });
+  };
+
+  const handleStopClick = (carProps: ICar, target: HTMLDivElement) => {
+    const stopVar = { value: false };
+    stopEngine(carProps.id).then(({ distance, velocity }: { distance: number; velocity: number }) => {
+      animateCar({ duration: distance / velocity, draw: drawCar }, target, stopVar);
+      target ? (target.style.transform = `translateX(0)`) : null;
+    });
+  };
+
   return (
     <>
       <section className={styles.controls}>
@@ -145,6 +211,8 @@ export const Garage = (): JSX.Element => {
             id={el.id}
             onDelete={handleDelete}
             onSelect={handleSelect}
+            onStart={handleStartClick}
+            onStop={handleStopClick}
           />
         ))}
       <div>

@@ -9,65 +9,13 @@ type TrackProps = {
   id: number;
   onDelete: (id: number) => void;
   onSelect: (carProps: ICar) => void;
+  onStart: (carProps: ICar, carRef: HTMLDivElement) => void;
+  onStop: (carProps: ICar, carRef: HTMLDivElement) => void;
 };
 
-interface IAnimate {
-  duration: number;
-  draw: (progress: number) => void;
-}
-
-const CAR_MARGIN = 180 + document.documentElement.clientWidth * 0.05;
-
-export const Track = ({ name, color, id, onDelete, onSelect }: TrackProps): JSX.Element => {
-  const carRef = useRef<HTMLInputElement>(null);
-  const raceDistance = document.documentElement.clientWidth - CAR_MARGIN;
-  const obj = { success: true };
+export const Track = ({ name, color, id, onDelete, onSelect, onStart, onStop }: TrackProps): JSX.Element => {
+  const carRef = useRef<HTMLDivElement>(null);
   const [isCarStarted, setIsCarStarted] = useState(false);
-
-  const animateCar = ({ duration, draw }: IAnimate) => {
-    let start = performance.now();
-
-    requestAnimationFrame(function animate(time) {
-      let timeFraction = (time - start) / duration;
-      if (timeFraction > 1) timeFraction = 1;
-
-      draw(timeFraction);
-      console.log(obj.success);
-      if (!obj.success) {
-        timeFraction = 1;
-      }
-
-      if (timeFraction < 1) {
-        requestAnimationFrame(animate);
-      }
-    });
-  };
-
-  const drawCar = (progress: number) => {
-    const target = carRef.current;
-
-    if (target) {
-      target.style.transform = `translateX(${progress * raceDistance}px)`;
-    }
-  };
-
-  const handleStartClick = () => {
-    setIsCarStarted(true);
-    const res = startEngine(id);
-    res.then(({ distance, velocity }: { distance: number; velocity: number }) => {
-      driveMode(id).then((res: { success: boolean }) => (obj.success = res.success));
-      animateCar({ duration: distance / velocity, draw: drawCar });
-    });
-  };
-
-  const handleStopClick = () => {
-    setIsCarStarted(false);
-    const target = carRef.current;
-    stopEngine(id).then(({ distance, velocity }: { distance: number; velocity: number }) => {
-      animateCar({ duration: distance / velocity, draw: drawCar });
-      target ? (target.style.transform = `translateX(0)`) : null;
-    });
-  };
 
   return (
     <>
@@ -85,14 +33,20 @@ export const Track = ({ name, color, id, onDelete, onSelect }: TrackProps): JSX.
           <div className={styles.road}>
             <button
               className={`${styles.startBtn} ${isCarStarted && styles.inactiveBtn}`}
-              onClick={handleStartClick}
+              onClick={() => {
+                onStart({ name, color, id }, carRef.current as HTMLDivElement);
+                setIsCarStarted(true);
+              }}
               disabled={isCarStarted}
             >
               A
             </button>
             <button
               className={`${styles.stopBtn} ${!isCarStarted && styles.inactiveBtn}`}
-              onClick={handleStopClick}
+              onClick={() => {
+                onStop({ name, color, id }, carRef.current as HTMLDivElement);
+                setIsCarStarted(false);
+              }}
               disabled={!isCarStarted}
             >
               B
