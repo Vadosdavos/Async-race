@@ -34,6 +34,8 @@ export const Garage = (): JSX.Element => {
   const refsArray: Array<React.RefObject<HTMLDivElement>> = [];
   const raceDistance = document.documentElement.clientWidth - CAR_MARGIN;
 
+  let carAnimation = 0;
+
   async function getGarageState(page: number): Promise<void> {
     const { count: carCount, items: cars } = await getCars(page);
     if (carCount) {
@@ -128,60 +130,53 @@ export const Garage = (): JSX.Element => {
   };
 
   const handleRaceClick = () => {
-    // refsArray.forEach((el, index) => (el.current ? handleStartClick(carsArray[index], el.current) : null));
-    const promisesArr = refsArray.map(
-      (el, index) =>
-        new Promise(() => {
-          el.current ? handleStartClick(carsArray[index], el.current) : null;
-        })
-    );
-    // Promise.all(promisesArr).then((data) => console.log(data));
+    const promisesArr = refsArray
+      .map((el, index) => (el.current ? handleStartClick(carsArray[index], el.current) : null))
+      .filter((el) => el !== null);
+    Promise.race(promisesArr).then((data) => console.log(data));
   };
 
-  const animateCar = ({ duration, draw }: IAnimate, target: HTMLDivElement, stopVar: { value: boolean }) => {
-    let start = performance.now();
-
-    requestAnimationFrame(function animate(time) {
-      let timeFraction = (time - start) / duration;
-      if (timeFraction > 1) {
-        timeFraction = 1;
-      }
-
-      if (stopVar.value) return;
-
-      draw(timeFraction, target);
-
-      if (timeFraction < 1) {
-        requestAnimationFrame(animate);
-      }
-    });
-  };
-
-  const drawCar = (progress: number, target: HTMLDivElement) => {
+  const animate = (duration: number, start: number, target: HTMLDivElement) => {
+    let timeFraction = (performance.now() - start) / duration;
+    if (timeFraction > 1) {
+      timeFraction = 1;
+    }
     if (target) {
-      target.style.transform = `translateX(${progress * raceDistance}px)`;
+      target.style.transform = `translateX(${timeFraction * raceDistance}px)`;
+    }
+
+    if (timeFraction < 1) {
+      carAnimation = requestAnimationFrame(() => animate(duration, start, target));
     }
   };
 
   const handleStartClick = (carProps: ICar, target: HTMLDivElement) => {
-    const stopVar = { value: false };
-    const res = startEngine(carProps.id);
-    res.then(({ distance, velocity }: { distance: number; velocity: number }) => {
-      driveMode(carProps.id).then((res: { success: boolean }) => {
-        if (!res.success) {
-          stopVar.value = true;
-        } else {
-          return new Promise((result) => result);
-        }
+    return new Promise((resolve, reject) => {
+      startEngine(carProps.id).then(({ distance, velocity }: { distance: number; velocity: number }) => {
+        const time = distance / velocity;
+        const start = performance.now();
+        carAnimation = requestAnimationFrame(() => {
+          animate(time, start, target);
+        });
+        driveMode(carProps.id).then((res) => {
+          if (!res.success) {
+            cancelAnimationFrame(carAnimation);
+            reject(new Error('The engine has stopped'));
+          } else {
+            resolve({
+              id: carProps.id,
+              name: carProps.name,
+              time: Number((time / 1000).toFixed(2)),
+            });
+          }
+        });
       });
-      animateCar({ duration: distance / velocity, draw: drawCar }, target, stopVar);
     });
   };
 
   const handleStopClick = (carProps: ICar, target: HTMLDivElement) => {
-    const stopVar = { value: false };
-    stopEngine(carProps.id).then(({ distance, velocity }: { distance: number; velocity: number }) => {
-      animateCar({ duration: distance / velocity, draw: drawCar }, target, stopVar);
+    stopEngine(carProps.id).then(() => {
+      cancelAnimationFrame(carAnimation);
       target ? (target.style.transform = `translateX(0)`) : null;
     });
   };
