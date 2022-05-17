@@ -9,20 +9,17 @@ import {
   updateCar,
   driveMode,
   startEngine,
+  IWinnerData,
 } from '../../../api/api';
 import { generateRandomCars } from '../../../api/utils';
 import { FormField } from '../FormField/FormField';
 import { Track } from '../Track/Track';
+import { WinModal } from '../WinModal/WinModal';
 import styles from './Garage.styles.css';
-
-interface IAnimate {
-  duration: number;
-  draw: (progress: number, target: HTMLDivElement) => void;
-}
 
 const CAR_MARGIN = 180 + document.documentElement.clientWidth * 0.05;
 
-export const Garage = (): JSX.Element => {
+export const Garage = ({ updateWinners }: { updateWinners: React.Dispatch<React.SetStateAction<{}>> }): JSX.Element => {
   const [carNumber, setCarNumber] = useState(0);
   const [carsArray, setCarsArray] = useState<ICar[]>([]);
   const tempCarData: ICarSet = { name: 'testCar', color: '#ffffff' };
@@ -31,6 +28,9 @@ export const Garage = (): JSX.Element => {
   const [tempCarId, setTempCarId] = useState(0);
   const [page, setPage] = useState(1);
   const [isReset, setIsReset] = useState(false);
+  const [winnerData, setWinnerData] = useState({ id: 0, name: '', time: 0 });
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isRaceActive, setIsRaceActive] = useState(false);
   const refsArray: Array<React.RefObject<HTMLDivElement>> = [];
   const raceDistance = document.documentElement.clientWidth - CAR_MARGIN;
 
@@ -110,6 +110,8 @@ export const Garage = (): JSX.Element => {
     getGarageState(page);
   };
   const handleChangePage = (event: SyntheticEvent) => {
+    setIsModalVisible(false);
+    setIsRaceActive((prev) => !prev);
     const target = event.target as HTMLElement;
     switch (target.textContent) {
       case 'next':
@@ -122,18 +124,29 @@ export const Garage = (): JSX.Element => {
   };
 
   const handleResetClick = () => {
+    setIsRaceActive((prev) => !prev);
     setIsReset(true);
     carsArray.forEach((el) => stopEngine(el.id));
     setTimeout(() => {
       setIsReset(false);
     }, 0);
+    carAnimation = 0;
+    setWinnerData({ id: 0, name: '', time: 0 });
+    setIsModalVisible(false);
   };
 
   const handleRaceClick = () => {
+    setIsRaceActive((prev) => !prev);
     const promisesArr = refsArray
       .map((el, index) => (el.current ? handleStartClick(carsArray[index], el.current) : null))
       .filter((el) => el !== null);
-    Promise.race(promisesArr).then((data) => console.log(data));
+    Promise.any(promisesArr).then((data: IWinnerData | null) => {
+      if (data) {
+        setWinnerData(data);
+        updateWinners(data);
+      }
+      setIsModalVisible(true);
+    });
   };
 
   const animate = (duration: number, start: number, target: HTMLDivElement) => {
@@ -150,7 +163,7 @@ export const Garage = (): JSX.Element => {
     }
   };
 
-  const handleStartClick = (carProps: ICar, target: HTMLDivElement) => {
+  const handleStartClick = (carProps: ICar, target: HTMLDivElement): Promise<IWinnerData> => {
     return new Promise((resolve, reject) => {
       startEngine(carProps.id).then(({ distance, velocity }: { distance: number; velocity: number }) => {
         const time = distance / velocity;
@@ -174,7 +187,7 @@ export const Garage = (): JSX.Element => {
     });
   };
 
-  const handleStopClick = (carProps: ICar, target: HTMLDivElement) => {
+  const handleStopClick = (carProps: ICar, target: HTMLDivElement): void => {
     stopEngine(carProps.id).then(() => {
       cancelAnimationFrame(carAnimation);
       target ? (target.style.transform = `translateX(0)`) : null;
@@ -199,10 +212,10 @@ export const Garage = (): JSX.Element => {
           ref={updateInputRef}
           colorUpdateValue={colorUpdateValue}
         />
-        <button className={styles.controlsBtn} onClick={handleRaceClick}>
+        <button className={styles.controlsBtn} onClick={handleRaceClick} disabled={isRaceActive}>
           Race
         </button>
-        <button className={styles.controlsBtn} onClick={handleResetClick}>
+        <button className={styles.controlsBtn} onClick={handleResetClick} disabled={!isRaceActive}>
           Reset
         </button>
         <button className={styles.controlsBtn} onClick={handleGenerateCars}>
@@ -239,6 +252,11 @@ export const Garage = (): JSX.Element => {
         >
           next
         </button>
+        {isModalVisible && (
+          <WinModal>
+            {winnerData.name} won first ({winnerData.time})!
+          </WinModal>
+        )}
       </div>
     </>
   );

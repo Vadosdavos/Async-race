@@ -1,6 +1,10 @@
+import { useContext } from 'react';
+import { WinnersContext } from '../../../App';
 import styles from './WinTable.styles.css';
 
 export const WinTable = () => {
+  const winnersData = useContext(WinnersContext);
+  console.log(winnersData);
   return (
     <section style={styles}>
       <p>Page #1</p>

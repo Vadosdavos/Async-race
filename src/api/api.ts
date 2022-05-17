@@ -16,6 +16,12 @@ interface IGarage {
   count: string | null;
 }
 
+export interface IWinnerData {
+  id: number;
+  name: string;
+  time: number;
+}
+
 export const getCars = async (page: number, limit: number = 7): Promise<IGarage> => {
   const res = await fetch(`${garage}?_page=${page}&_limit=${limit}`);
   return {
