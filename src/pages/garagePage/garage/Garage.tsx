@@ -10,6 +10,7 @@ import {
   driveMode,
   startEngine,
   IWinnerData,
+  setWinner,
 } from '../../../api/api';
 import { generateRandomCars } from '../../../api/utils';
 import { FormField } from '../FormField/FormField';
@@ -144,6 +145,7 @@ export const Garage = ({ updateWinners }: { updateWinners: React.Dispatch<React.
       if (data) {
         setWinnerData(data);
         updateWinners(data);
+        setWinner({ id: data.id, wins: 1, time: data.time });
       }
       setIsModalVisible(true);
     });

@@ -1,10 +1,15 @@
 import { useContext } from 'react';
+import { IWinnerDataResponse } from '../../../api/api';
 import { WinnersContext } from '../../../App';
 import styles from './WinTable.styles.css';
 
-export const WinTable = () => {
+interface IPropsType {
+  data: IWinnerDataResponse[];
+}
+
+export const WinTable = ({ data }: IPropsType) => {
   const winnersData = useContext(WinnersContext);
-  console.log(winnersData);
+  // console.log(winnersData);
   return (
     <section style={styles}>
       <p>Page #1</p>
@@ -16,13 +21,17 @@ export const WinTable = () => {
           <th>Wins</th>
           <th>Best time (sec)</th>
         </tr>
-        <tr>
-          <td>1</td>
-          <td>2</td>
-          <td>3</td>
-          <td>4</td>
-          <td>5</td>
-        </tr>
+        {data.map((el, index) => {
+          return (
+            <tr key={el.id}>
+              <td>{index + 1}</td>
+              <td>car</td>
+              <td>{el.id}</td>
+              <td>{el.wins}</td>
+              <td>{el.time}</td>
+            </tr>
+          );
+        })}
       </table>
     </section>
   );
