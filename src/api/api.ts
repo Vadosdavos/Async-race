@@ -11,10 +11,13 @@ export interface ICarSet {
   name: string;
   color: string;
 }
-export interface IWinnerSet {
-  id: number;
+
+interface IWinnerUpdate {
   wins: number;
   time: number;
+}
+export interface IWinnerSet extends IWinnerUpdate {
+  id: number;
 }
 
 interface IGarage {
@@ -56,7 +59,7 @@ export const getCars = async (page: number, limit: number = 7): Promise<IGarage>
   };
 };
 
-export const getCar = async (id: number) => (await fetch(`${garage}/${id}`)).json();
+export const getCar = async (id: number): Promise<ICar> => (await fetch(`${garage}/${id}`)).json();
 
 export const setCar = async (body: ICarSet) =>
   (
@@ -121,3 +124,16 @@ export const setWinner = async (body: IWinnerSet) =>
       },
     })
   ).json();
+
+export const updateWinner = async (id: number, body: IWinnerUpdate) =>
+  (
+    await fetch(`${winners}/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(body),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+  ).json();
+
+export const getWinner = async (id: number): Promise<IWinnerSet> => (await fetch(`${winners}/${id}`)).json();

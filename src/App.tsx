@@ -4,11 +4,12 @@ import { Route, Routes } from 'react-router-dom';
 import './style.css';
 import { Winners } from './pages/winnersPage/Winners/Winners';
 import { createContext, useState } from 'react';
+import { IWinnerData } from './api/api';
 
-export const WinnersContext = createContext({});
+export const WinnersContext = createContext([{ id: 1, name: 'Tesla', time: 10 }]);
 
 export const App = () => {
-  const [winners, setWinners] = useState({});
+  const [winners, setWinners] = useState<IWinnerData[]>([{ id: 1, name: 'Tesla', time: 10 }]);
   return (
     <>
       <Header />

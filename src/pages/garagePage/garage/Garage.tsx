@@ -11,6 +11,8 @@ import {
   startEngine,
   IWinnerData,
   setWinner,
+  updateWinner,
+  getWinner,
 } from '../../../api/api';
 import { generateRandomCars } from '../../../api/utils';
 import { FormField } from '../FormField/FormField';
@@ -20,7 +22,11 @@ import styles from './Garage.styles.css';
 
 const CAR_MARGIN = 180 + document.documentElement.clientWidth * 0.05;
 
-export const Garage = ({ updateWinners }: { updateWinners: React.Dispatch<React.SetStateAction<{}>> }): JSX.Element => {
+export const Garage = ({
+  updateWinners,
+}: {
+  updateWinners: React.Dispatch<React.SetStateAction<IWinnerData[]>>;
+}): JSX.Element => {
   const [carNumber, setCarNumber] = useState(0);
   const [carsArray, setCarsArray] = useState<ICar[]>([]);
   const tempCarData: ICarSet = { name: 'testCar', color: '#ffffff' };
@@ -144,8 +150,15 @@ export const Garage = ({ updateWinners }: { updateWinners: React.Dispatch<React.
     Promise.any(promisesArr).then((data: IWinnerData | null) => {
       if (data) {
         setWinnerData(data);
-        updateWinners(data);
-        setWinner({ id: data.id, wins: 1, time: data.time });
+        updateWinners((prev) => [...prev, data]);
+        setWinner({ id: data.id, wins: 1, time: data.time }).catch(() => {
+          getWinner(data.id).then((response) =>
+            updateWinner(response.id, {
+              wins: response.wins + 1,
+              time: data.time < response.time ? data.time : response.time,
+            })
+          );
+        });
       }
       setIsModalVisible(true);
     });
