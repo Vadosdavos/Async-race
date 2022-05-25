@@ -43,6 +43,13 @@ export interface IFullCarData {
   color: string;
 }
 
+export interface IMove {
+  carAnim: { [key: string]: number };
+  start: (carProps: ICar, carRef: HTMLDivElement) => void;
+  stop: (carProps: ICar, carRef: HTMLDivElement) => void;
+  anim: (duration: number, start: number, target: HTMLDivElement, carProps: ICar) => void;
+}
+
 interface IWinners {
   items: IWinnerDataResponse[];
   count: string | null;
@@ -106,7 +113,7 @@ export const stopEngine = async (id: number) =>
 
 export const driveMode = async (id: number): Promise<{ success: boolean }> => {
   const res = await fetch(`${engine}?id=${id}&status=drive`, { method: 'PATCH' }).catch();
-  return res.status !== 200 ? { success: false } : { ...(await res.json()) };
+  return res.status !== 200 ? { success: false } : { success: true };
 };
 
 export const getWinners = async (

@@ -53,6 +53,7 @@
 
 .car {
   margin-left: 5px;
+  position: relative;
 }
 .car svg {
   display: block;

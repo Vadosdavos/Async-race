@@ -31,13 +31,11 @@ export const Garage = (): JSX.Element => {
   const [tempCarId, setTempCarId] = useState(0);
   const [page, setPage] = useState(1);
   const [isReset, setIsReset] = useState(false);
-  const [winnerData, setWinnerData] = useState({ id: 0, name: '', time: 0 });
+  const [winnerData, setWinnerData] = useState({ id: 0, name: 'No one', time: 0 });
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isRaceActive, setIsRaceActive] = useState(false);
   const refsArray: Array<React.RefObject<HTMLDivElement>> = [];
   const raceDistance = document.documentElement.clientWidth - CAR_MARGIN;
-
-  let carAnimation = 0;
 
   async function getGarageState(page: number): Promise<void> {
     const { count: carCount, items: cars } = await getCars(page);
@@ -67,14 +65,17 @@ export const Garage = (): JSX.Element => {
       setPage((prevValue) => prevValue - 1);
     }
   };
+
   const handleTextInput = (event: SyntheticEvent) => {
     const target = event.currentTarget as HTMLInputElement;
     tempCarData.name = target.value;
   };
+
   const handleColorInput = (event: SyntheticEvent) => {
     const target = event.currentTarget as HTMLInputElement;
     tempCarData.color = target.value;
   };
+
   const handleCreateClick = () => {
     const res = setCar({
       name: tempCarData.name,
@@ -85,6 +86,7 @@ export const Garage = (): JSX.Element => {
     }
     setCarNumber((prevCarNumber) => prevCarNumber + 1);
   };
+
   const handleUpdateClick = () => {
     updateCar(tempCarId, {
       name: tempCarData.name,
@@ -100,6 +102,7 @@ export const Garage = (): JSX.Element => {
     updateInputText.disabled = true;
     updateInputText.value = '';
   };
+
   const handleSelect = (carProps: ICar) => {
     const updateInputText = updateInputRef.current as HTMLInputElement;
     updateInputText.focus();
@@ -108,10 +111,12 @@ export const Garage = (): JSX.Element => {
     setColorUpdateValue(carProps.color);
     setTempCarId(carProps.id);
   };
+
   const handleGenerateCars = () => {
     generateRandomCars().forEach((el) => setCar(el));
     getGarageState(page);
   };
+
   const handleChangePage = (event: SyntheticEvent) => {
     setIsModalVisible(false);
     setIsRaceActive(false);
@@ -133,75 +138,82 @@ export const Garage = (): JSX.Element => {
     setTimeout(() => {
       setIsReset(false);
     }, 0);
-    carAnimation = 0;
     setWinnerData({ id: 0, name: '', time: 0 });
     setIsModalVisible(false);
   };
 
-  const handleRaceClick = () => {
+  const handleRaceClick = async () => {
     setIsRaceActive((prev) => !prev);
-    const promisesArr = refsArray
-      .map((el, index) => (el.current ? handleStartClick(carsArray[index], el.current) : null))
-      .filter((el) => el !== null);
-    Promise.any(promisesArr).then((data: IWinnerData | null) => {
-      if (data) {
-        setWinnerData(data);
-        setWinner({ id: data.id, wins: 1, time: data.time }).catch(() => {
-          getWinner(data.id).then((response) =>
-            updateWinner(response.id, {
-              wins: response.wins + 1,
-              time: data.time < response.time ? data.time : response.time,
-            })
-          );
-        });
+    const promisesArr: Promise<IWinnerData>[] = [];
+    refsArray.forEach((el, index) => (el.current ? promisesArr.push(move.start(carsArray[index], el.current)) : null));
+    await Promise.any(promisesArr)
+      .then((data) => {
+        if (data) {
+          setWinnerData(data);
+          getWinner(data.id).then((response) => {
+            if (Object.keys(response).length === 0) {
+              setWinner({ id: data.id, wins: 1, time: data.time });
+            } else {
+              updateWinner(response.id, {
+                wins: response.wins + 1,
+                time: data.time < response.time ? data.time : response.time,
+              });
+            }
+          });
+        }
+        setIsModalVisible(true);
+      })
+      .catch(Error);
+  };
+
+  const move: {
+    carAnim: { [key: string]: number };
+    anim: (duration: number, start: number, target: HTMLDivElement, carProps: ICar) => void;
+    start: (carProps: ICar, target: HTMLDivElement) => Promise<IWinnerData>;
+    stop: (carProps: ICar, target: HTMLDivElement) => void;
+  } = {
+    carAnim: {},
+    anim: (duration: number, start: number, target: HTMLDivElement, carProps: ICar): void => {
+      let timeFraction = (performance.now() - start) / duration;
+      if (timeFraction > 1) {
+        timeFraction = 1;
       }
-      setIsModalVisible(true);
-    });
-  };
-
-  const animate = (duration: number, start: number, target: HTMLDivElement) => {
-    let timeFraction = (performance.now() - start) / duration;
-    if (timeFraction > 1) {
-      timeFraction = 1;
-    }
-    if (target) {
-      target.style.transform = `translateX(${timeFraction * raceDistance}px)`;
-    }
-
-    if (timeFraction < 1) {
-      carAnimation = requestAnimationFrame(() => animate(duration, start, target));
-    }
-  };
-
-  const handleStartClick = (carProps: ICar, target: HTMLDivElement): Promise<IWinnerData> => {
-    return new Promise((resolve, reject) => {
-      startEngine(carProps.id).then(({ distance, velocity }: { distance: number; velocity: number }) => {
-        const time = distance / velocity;
-        const start = performance.now();
-        carAnimation = requestAnimationFrame(() => {
-          animate(time, start, target);
-        });
-        driveMode(carProps.id).then((res) => {
-          if (!res.success) {
-            cancelAnimationFrame(carAnimation);
-            reject(new Error('The engine has stopped'));
-          } else {
-            resolve({
-              id: carProps.id,
-              name: carProps.name,
-              time: Number((time / 1000).toFixed(2)),
-            });
-          }
+      if (target) {
+        target.style.transform = `translateX(${timeFraction * raceDistance}px)`;
+      }
+      if (timeFraction < 1) {
+        move.carAnim[carProps.id] = requestAnimationFrame(() => move.anim(duration, start, target, carProps));
+      }
+    },
+    start: (carProps: ICar, target: HTMLDivElement): Promise<IWinnerData> => {
+      return new Promise((resolve, reject) => {
+        startEngine(carProps.id).then(({ distance, velocity }: { distance: number; velocity: number }) => {
+          const time = distance / velocity;
+          const start = performance.now();
+          move.carAnim[carProps.id] = requestAnimationFrame(() => {
+            move.anim(time, start, target, carProps);
+          });
+          driveMode(carProps.id).then((res) => {
+            if (!res.success) {
+              cancelAnimationFrame(move.carAnim[carProps.id]);
+              reject(new Error(`The engine has stopped Car name: ${carProps.name}`));
+            } else {
+              resolve({
+                id: carProps.id,
+                name: carProps.name,
+                time: Number((time / 1000).toFixed(2)),
+              });
+            }
+          });
         });
       });
-    });
-  };
-
-  const handleStopClick = (carProps: ICar, target: HTMLDivElement): void => {
-    stopEngine(carProps.id).then(() => {
-      cancelAnimationFrame(carAnimation);
-      target ? (target.style.transform = `translateX(0)`) : null;
-    });
+    },
+    stop: (carProps: ICar, target: HTMLDivElement): void => {
+      stopEngine(carProps.id).then(() => {
+        cancelAnimationFrame(move.carAnim[carProps.id]);
+        target ? (target.style.transform = `translateX(0)`) : null;
+      });
+    },
   };
 
   return (
@@ -246,9 +258,8 @@ export const Garage = (): JSX.Element => {
             id={el.id}
             onDelete={handleDelete}
             onSelect={handleSelect}
-            onStart={handleStartClick}
-            onStop={handleStopClick}
             ref={refsArray[index]}
+            move={move}
           />
         ))}
       <div>
