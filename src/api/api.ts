@@ -35,6 +35,14 @@ export interface IWinnerDataResponse extends IWinnerData {
   wins: number;
 }
 
+export interface IFullCarData {
+  id: number;
+  name: string;
+  wins: number;
+  time: number;
+  color: string;
+}
+
 interface IWinners {
   items: IWinnerDataResponse[];
   count: string | null;

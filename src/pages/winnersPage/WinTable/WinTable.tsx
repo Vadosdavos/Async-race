@@ -1,6 +1,6 @@
-import { useContext, useState } from 'react';
-import { getCar, IWinnerDataResponse } from '../../../api/api';
-import { WinnersContext } from '../../../App';
+import { useEffect, useState } from 'react';
+import { getCar, IFullCarData, IWinnerDataResponse } from '../../../api/api';
+import { CarImg } from '../../../components/CarImg/CatImg';
 import styles from './WinTable.styles.css';
 
 interface IPropsType {
@@ -8,28 +8,45 @@ interface IPropsType {
 }
 
 export const WinTable = ({ data }: IPropsType) => {
-  // const winnersData = useContext(WinnersContext);
-  const [winnersNames, setWinnersNames] = useState<{ id: number; name: string }[]>([]);
+  const [winnersData, setWinnersData] = useState<IFullCarData[]>([]);
 
-  // const getWinnerName = async () => {
-  //   const arr = data.map(el => {id: el.id, name: await getCar(el.id)})
-  // };
-  console.log(data);
+  const getWinnerName = () => {
+    data.forEach((el) => {
+      getCar(el.id).then((car) =>
+        setWinnersData((prev) => [
+          ...prev,
+          { id: el.id, wins: el.wins, time: el.time, name: car.name, color: car.color },
+        ])
+      );
+    });
+  };
+
+  useEffect(() => {
+    setWinnersData([]);
+    getWinnerName();
+  }, [data]);
+
   return (
     <section style={styles}>
       <p>Page #1</p>
       <table>
         <tr>
           <th>Number</th>
+          <th>Car</th>
           <th>Name</th>
           <th>Wins</th>
           <th>Best time (sec)</th>
         </tr>
-        {data.map((el, index) => {
+        {winnersData.map((el, index) => {
           return (
             <tr key={el.id}>
               <td>{index + 1}</td>
-              {/* <td>{getWinnerName(el.id)}</td> */}
+              <td>
+                <div className={styles.car}>
+                  <CarImg color={el.color} />
+                </div>
+              </td>
+              <td>{el.name}</td>
               <td>{el.wins}</td>
               <td>{el.time}</td>
             </tr>

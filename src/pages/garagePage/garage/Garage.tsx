@@ -22,11 +22,7 @@ import styles from './Garage.styles.css';
 
 const CAR_MARGIN = 180 + document.documentElement.clientWidth * 0.05;
 
-export const Garage = ({
-  updateWinners,
-}: {
-  updateWinners: React.Dispatch<React.SetStateAction<IWinnerData[]>>;
-}): JSX.Element => {
+export const Garage = (): JSX.Element => {
   const [carNumber, setCarNumber] = useState(0);
   const [carsArray, setCarsArray] = useState<ICar[]>([]);
   const tempCarData: ICarSet = { name: 'testCar', color: '#ffffff' };
@@ -118,7 +114,7 @@ export const Garage = ({
   };
   const handleChangePage = (event: SyntheticEvent) => {
     setIsModalVisible(false);
-    setIsRaceActive((prev) => !prev);
+    setIsRaceActive(false);
     const target = event.target as HTMLElement;
     switch (target.textContent) {
       case 'next':
@@ -150,7 +146,6 @@ export const Garage = ({
     Promise.any(promisesArr).then((data: IWinnerData | null) => {
       if (data) {
         setWinnerData(data);
-        updateWinners((prev) => [...prev, data]);
         setWinner({ id: data.id, wins: 1, time: data.time }).catch(() => {
           getWinner(data.id).then((response) =>
             updateWinner(response.id, {

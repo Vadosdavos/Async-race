@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { SyntheticEvent, useEffect, useState } from 'react';
 import { getWinners, IWinnerDataResponse } from '../../../api/api';
 import { WinTable } from '../WinTable/WinTable';
 import styles from './Winners.styles.css';
@@ -20,7 +20,19 @@ export const Winners = () => {
 
   useEffect(() => {
     getWinnersState(page);
-  }, []);
+  }, [page]);
+
+  const handleChangePage = (event: SyntheticEvent) => {
+    const target = event.target as HTMLElement;
+    switch (target.textContent) {
+      case 'next':
+        setPage((prevValue) => prevValue + 1);
+        break;
+      case 'prev':
+        setPage((prevValue) => prevValue - 1);
+        break;
+    }
+  };
 
   return (
     <>
@@ -29,8 +41,16 @@ export const Winners = () => {
       </h2>
       <WinTable data={winnersArray} />
       <div>
-        <button>prev</button>
-        <button>next</button>
+        <button onClick={handleChangePage} disabled={page <= 1 ? true : false}>
+          prev
+        </button>
+        <button
+          className={styles.paginationBtn}
+          onClick={handleChangePage}
+          disabled={winnersNumber / 10 <= page ? true : false}
+        >
+          next
+        </button>
       </div>
     </>
   );
