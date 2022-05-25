@@ -40,7 +40,7 @@ export const Winners = () => {
         Winners <span>({winnersNumber})</span>
       </h2>
       <WinTable data={winnersArray} />
-      <div>
+      <div className={styles.btnContainer}>
         <button onClick={handleChangePage} disabled={page <= 1 ? true : false}>
           prev
         </button>

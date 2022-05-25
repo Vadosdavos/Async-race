@@ -30,28 +30,32 @@ export const WinTable = ({ data }: IPropsType) => {
     <section style={styles}>
       <p>Page #1</p>
       <table>
-        <tr>
-          <th>Number</th>
-          <th>Car</th>
-          <th>Name</th>
-          <th>Wins</th>
-          <th>Best time (sec)</th>
-        </tr>
-        {winnersData.map((el, index) => {
-          return (
-            <tr key={el.id}>
-              <td>{index + 1}</td>
-              <td>
-                <div className={styles.car}>
-                  <CarImg color={el.color} />
-                </div>
-              </td>
-              <td>{el.name}</td>
-              <td>{el.wins}</td>
-              <td>{el.time}</td>
-            </tr>
-          );
-        })}
+        <thead>
+          <tr>
+            <th>Number</th>
+            <th>Car</th>
+            <th>Name</th>
+            <th>Wins</th>
+            <th>Best time (sec)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {winnersData.map((el, index) => {
+            return (
+              <tr key={el.id}>
+                <td>{index + 1}</td>
+                <td>
+                  <div className={styles.car}>
+                    <CarImg color={el.color} />
+                  </div>
+                </td>
+                <td>{el.name}</td>
+                <td>{el.wins}</td>
+                <td>{el.time}</td>
+              </tr>
+            );
+          })}
+        </tbody>
       </table>
     </section>
   );
