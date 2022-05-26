@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
-import { getCar, IFullCarData, IWinnerDataResponse } from '../../../api/api';
+import { getCar, IFullCarData, IWinnerDataResponse, Sort } from '../../../api/api';
 import { CarImg } from '../../../components/CarImg/CatImg';
 import styles from './WinTable.styles.css';
 
 interface IPropsType {
   data: IWinnerDataResponse[];
+  handleSort: (type: Sort) => void;
 }
 
-export const WinTable = ({ data }: IPropsType) => {
+export const WinTable = ({ data, handleSort }: IPropsType) => {
   const [winnersData, setWinnersData] = useState<IFullCarData[]>([]);
 
   const getWinnerName = useCallback(() => {
@@ -35,8 +36,16 @@ export const WinTable = ({ data }: IPropsType) => {
             <th>Number</th>
             <th>Car</th>
             <th>Name</th>
-            <th>Wins</th>
-            <th>Best time (sec)</th>
+            <th>
+              <span className={styles.sortable} onClick={() => handleSort(Sort.wins)}>
+                Wins
+              </span>
+            </th>
+            <th>
+              <span className={styles.sortable} onClick={() => handleSort(Sort.time)}>
+                Best time (sec)
+              </span>
+            </th>
           </tr>
         </thead>
         <tbody>

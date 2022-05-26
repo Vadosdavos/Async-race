@@ -55,13 +55,13 @@ interface IWinners {
   count: string | null;
 }
 
-enum Sort {
+export enum Sort {
   id = 'id',
   wins = 'wins',
   time = 'time',
 }
 
-enum Order {
+export enum Order {
   ASC = 'ASC',
   DESC = 'DESC',
 }
@@ -119,7 +119,7 @@ export const driveMode = async (id: number): Promise<{ success: boolean }> => {
 export const getWinners = async (
   page: number,
   limit: number = 10,
-  sort: Sort = Sort.id,
+  sort: Sort = Sort.wins,
   order: Order = Order.ASC
 ): Promise<IWinners> => {
   const res = await fetch(`${winners}?_page=${page}&_limit=${limit}&_sort=${sort}&_order=${order}`);
