@@ -1,9 +1,9 @@
-import { useEffect } from 'react';
-import ReactDOM from 'react-dom';
-import styles from './WinModal.styles.css';
+import { useEffect } from "react";
+import ReactDOM from "react-dom";
+import styles from "./WinModal.styles.css";
 
 export const WinModal = (props: { children: React.ReactNode }) => {
-  const container = document.createElement('div');
+  const container = document.createElement("div");
   container.className = styles.modal;
 
   useEffect(() => {

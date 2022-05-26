@@ -1,7 +1,12 @@
-import { useCallback, useEffect, useState } from 'react';
-import { getCar, IFullCarData, IWinnerDataResponse, Sort } from '../../../api/api';
-import { CarImg } from '../../../components/CarImg/CatImg';
-import styles from './WinTable.styles.css';
+import { useCallback, useEffect, useState } from "react";
+import {
+  getCar,
+  IFullCarData,
+  IWinnerDataResponse,
+  Sort,
+} from "../../../api/api";
+import { CarImg } from "../../../components/CarImg/CatImg";
+import styles from "./WinTable.styles.css";
 
 interface IPropsType {
   data: IWinnerDataResponse[];
@@ -16,7 +21,13 @@ export const WinTable = ({ data, handleSort }: IPropsType) => {
       getCar(el.id).then((car) =>
         setWinnersData((prev) => [
           ...prev,
-          { id: el.id, wins: el.wins, time: el.time, name: car.name, color: car.color },
+          {
+            id: el.id,
+            wins: el.wins,
+            time: el.time,
+            name: car.name,
+            color: car.color,
+          },
         ])
       );
     });
@@ -25,7 +36,7 @@ export const WinTable = ({ data, handleSort }: IPropsType) => {
   useEffect(() => {
     setWinnersData([]);
     getWinnerName();
-  }, [data]);
+  }, [data, getWinnerName]);
 
   return (
     <section style={styles}>
@@ -37,12 +48,18 @@ export const WinTable = ({ data, handleSort }: IPropsType) => {
             <th>Car</th>
             <th>Name</th>
             <th>
-              <span className={styles.sortable} onClick={() => handleSort(Sort.wins)}>
+              <span
+                className={styles.sortable}
+                onClick={() => handleSort(Sort.wins)}
+              >
                 Wins
               </span>
             </th>
             <th>
-              <span className={styles.sortable} onClick={() => handleSort(Sort.time)}>
+              <span
+                className={styles.sortable}
+                onClick={() => handleSort(Sort.time)}
+              >
                 Best time (sec)
               </span>
             </th>

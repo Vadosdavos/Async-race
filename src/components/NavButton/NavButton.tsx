@@ -1,5 +1,5 @@
-import styles from './NavButton.styles.css';
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
+import styles from "./NavButton.styles.css";
 
 type NavButtonProps = {
   title: string;

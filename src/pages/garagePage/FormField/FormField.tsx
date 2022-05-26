@@ -1,5 +1,5 @@
-import React, { SyntheticEvent, useCallback, useRef } from 'react';
-import styles from './FormField.styles.css';
+import { forwardRef, SyntheticEvent, useCallback, useRef } from "react";
+import styles from "./FormField.styles.css";
 
 type FormProps = {
   type: string;
@@ -9,52 +9,36 @@ type FormProps = {
   colorUpdateValue?: string;
 };
 
-export const FormField = React.forwardRef<HTMLInputElement, FormProps>(
-  ({ type, handleTextInput, handleColorInput, handleClick, colorUpdateValue }, ref): JSX.Element => {
+export const FormField = forwardRef<HTMLInputElement, FormProps>(
+  function FormField(
+    { type, handleTextInput, handleColorInput, handleClick, colorUpdateValue },
+    ref
+  ): JSX.Element {
     const nameRef = useRef<HTMLInputElement>(null);
     const colorRef = useRef<HTMLInputElement>(null);
     const clearInput = useCallback((): void => {
       if (nameRef.current && colorRef.current) {
-        nameRef.current.value = '';
-        colorRef.current.value = '#000000';
+        nameRef.current.value = "";
+        colorRef.current.value = "#000000";
       }
     }, [nameRef, colorRef]);
 
-    if (type === 'create') {
+    if (type === "create") {
       return (
         <>
           <div className={styles.formField}>
             <input
-              type='text'
+              type="text"
               ref={nameRef}
               className={`${styles.textInput} ${styles[type]}`}
               onBlur={handleTextInput}
             />
-            <input type='color' ref={colorRef} className='colorInput' onBlur={handleColorInput} />
-            <button
-              className={styles.subButton}
-              onClick={() => {
-                handleClick();
-                clearInput();
-              }}
-            >
-              {type}
-            </button>
-          </div>
-        </>
-      );
-    } else {
-      return (
-        <>
-          <div className={styles.formField}>
             <input
-              type='text'
-              ref={ref}
-              className={`${styles.textInput} ${styles[type]}`}
-              onBlur={handleTextInput}
-              disabled
+              type="color"
+              ref={colorRef}
+              className="colorInput"
+              onBlur={handleColorInput}
             />
-            <input type='color' className='colorInput' defaultValue={colorUpdateValue} onBlur={handleColorInput} />
             <button
               className={styles.subButton}
               onClick={() => {
@@ -68,5 +52,33 @@ export const FormField = React.forwardRef<HTMLInputElement, FormProps>(
         </>
       );
     }
+    return (
+      <>
+        <div className={styles.formField}>
+          <input
+            type="text"
+            ref={ref}
+            className={`${styles.textInput} ${styles[type]}`}
+            onBlur={handleTextInput}
+            disabled
+          />
+          <input
+            type="color"
+            className="colorInput"
+            defaultValue={colorUpdateValue}
+            onBlur={handleColorInput}
+          />
+          <button
+            className={styles.subButton}
+            onClick={() => {
+              handleClick();
+              clearInput();
+            }}
+          >
+            {type}
+          </button>
+        </div>
+      </>
+    );
   }
 );

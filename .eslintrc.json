@@ -1,4 +1,4 @@
-{ 
+{
   "env": {
     "browser": true,
     "es2021": true
@@ -9,13 +9,7 @@
     "sourceType": "module",
     "project": "./tsconfig.json"
   },
-  "plugins": [
-    "import",
-    "@typescript-eslint",
-    "react-hooks",
-    "react",
-    "prettier"
-  ],
+  "plugins": ["import", "@typescript-eslint", "react-hooks", "react", "prettier"],
   "extends": [
     "eslint:recommended",
     "plugin:react/recommended",
@@ -42,7 +36,7 @@
         "functions": false
       }
     ],
-    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/rules-of-hooks": "warn",
     "react-hooks/exhaustive-deps": "warn",
     "react/jsx-uses-react": "off",
     "react/prop-types": "off",
