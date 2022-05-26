@@ -1,0 +1,17 @@
+.formField {
+  display: flex;
+  align-content: center;
+  column-gap: 20px;
+}
+.textInput {
+  font-weight: bold;
+}
+.create {
+  background-color: aquamarine;
+}
+.update {
+  font-weight: bolder;
+}
+.subButton {
+  width: 70px;
+}
