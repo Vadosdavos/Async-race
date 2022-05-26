@@ -1,4 +1,4 @@
-import { SyntheticEvent, useEffect, useRef, useState } from 'react';
+import { SyntheticEvent, useCallback, useEffect, useRef, useState } from 'react';
 import {
   deleteCar,
   getCars,
@@ -56,27 +56,36 @@ export const Garage = (): JSX.Element => {
     refsArray.push(element);
   }
 
-  const handleDelete = (id: number) => {
-    deleteCar(id);
-    setCarNumber((prevCarNumber) => prevCarNumber - 1);
-    const index = carsArray.findIndex((el) => el.id === id);
-    setCarsArray((prevCarsArray) => [...prevCarsArray.slice(0, index), ...prevCarsArray.slice(index + 1)]);
-    if (carsArray.length === 1) {
-      setPage((prevValue) => prevValue - 1);
-    }
-  };
+  const handleDelete = useCallback(
+    (id: number): void => {
+      deleteCar(id);
+      setCarNumber((prevCarNumber) => prevCarNumber - 1);
+      const index = carsArray.findIndex((el) => el.id === id);
+      setCarsArray((prevCarsArray) => [...prevCarsArray.slice(0, index), ...prevCarsArray.slice(index + 1)]);
+      if (carsArray.length === 1) {
+        setPage((prevValue) => prevValue - 1);
+      }
+    },
+    [carsArray]
+  );
 
-  const handleTextInput = (event: SyntheticEvent) => {
-    const target = event.currentTarget as HTMLInputElement;
-    tempCarData.name = target.value;
-  };
+  const handleTextInput = useCallback(
+    (event: SyntheticEvent): void => {
+      const target = event.currentTarget as HTMLInputElement;
+      tempCarData.name = target.value;
+    },
+    [tempCarData]
+  );
 
-  const handleColorInput = (event: SyntheticEvent) => {
-    const target = event.currentTarget as HTMLInputElement;
-    tempCarData.color = target.value;
-  };
+  const handleColorInput = useCallback(
+    (event: SyntheticEvent): void => {
+      const target = event.currentTarget as HTMLInputElement;
+      tempCarData.color = target.value;
+    },
+    [tempCarData]
+  );
 
-  const handleCreateClick = () => {
+  const handleCreateClick = useCallback((): void => {
     const res = setCar({
       name: tempCarData.name,
       color: tempCarData.color,
@@ -85,39 +94,44 @@ export const Garage = (): JSX.Element => {
       res.then((data: ICar) => setCarsArray((prevCarsArray) => [...prevCarsArray, data]));
     }
     setCarNumber((prevCarNumber) => prevCarNumber + 1);
-  };
+  }, [tempCarData, carsArray]);
 
-  const handleUpdateClick = () => {
+  const handleUpdateClick = useCallback((): void => {
+    const updateInputText = updateInputRef.current as HTMLInputElement;
+    const newName = updateInputText.value;
+    const newColor = tempCarData.color ? tempCarData.color : colorUpdateValue;
     updateCar(tempCarId, {
-      name: tempCarData.name,
-      color: tempCarData.color ? tempCarData.color : colorUpdateValue,
+      name: newName,
+      color: newColor,
     });
     const index = carsArray.findIndex((el) => el.id === tempCarId);
     setCarsArray((prevCarsArray) => {
-      prevCarsArray[index].name = tempCarData.name;
-      prevCarsArray[index].color = tempCarData.color;
+      prevCarsArray[index].name = newName;
+      prevCarsArray[index].color = newColor;
       return [...prevCarsArray];
     });
-    const updateInputText = updateInputRef.current as HTMLInputElement;
     updateInputText.disabled = true;
     updateInputText.value = '';
-  };
+  }, [updateInputRef, tempCarData, carsArray]);
 
-  const handleSelect = (carProps: ICar) => {
-    const updateInputText = updateInputRef.current as HTMLInputElement;
-    updateInputText.focus();
-    updateInputText.disabled = false;
-    updateInputText.value = carProps.name;
-    setColorUpdateValue(carProps.color);
-    setTempCarId(carProps.id);
-  };
+  const handleSelect = useCallback(
+    (carProps: ICar): void => {
+      const updateInputText = updateInputRef.current as HTMLInputElement;
+      updateInputText.focus();
+      updateInputText.disabled = false;
+      updateInputText.value = carProps.name;
+      setColorUpdateValue(carProps.color);
+      setTempCarId(carProps.id);
+    },
+    [updateInputRef]
+  );
 
-  const handleGenerateCars = () => {
+  const handleGenerateCars = useCallback((): void => {
     generateRandomCars().forEach((el) => setCar(el));
     getGarageState(page);
-  };
+  }, [page]);
 
-  const handleChangePage = (event: SyntheticEvent) => {
+  const handleChangePage = useCallback((event: SyntheticEvent): void => {
     setIsModalVisible(false);
     setIsRaceActive(false);
     const target = event.target as HTMLElement;
@@ -129,9 +143,9 @@ export const Garage = (): JSX.Element => {
         setPage((prevValue) => prevValue - 1);
         break;
     }
-  };
+  }, []);
 
-  const handleResetClick = () => {
+  const handleResetClick = useCallback((): void => {
     setIsRaceActive((prev) => !prev);
     setIsReset(true);
     carsArray.forEach((el) => stopEngine(el.id));
@@ -140,13 +154,13 @@ export const Garage = (): JSX.Element => {
     }, 0);
     setWinnerData({ id: 0, name: '', time: 0 });
     setIsModalVisible(false);
-  };
+  }, [carsArray]);
 
-  const handleRaceClick = async () => {
+  const handleRaceClick = useCallback((): void => {
     setIsRaceActive((prev) => !prev);
     const promisesArr: Promise<IWinnerData>[] = [];
     refsArray.forEach((el, index) => (el.current ? promisesArr.push(move.start(carsArray[index], el.current)) : null));
-    await Promise.any(promisesArr)
+    Promise.any(promisesArr)
       .then((data) => {
         if (data) {
           setWinnerData(data);
@@ -164,7 +178,7 @@ export const Garage = (): JSX.Element => {
         setIsModalVisible(true);
       })
       .catch(Error);
-  };
+  }, [refsArray, carsArray]);
 
   const move: {
     carAnim: { [key: string]: number };

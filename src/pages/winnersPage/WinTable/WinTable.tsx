@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { getCar, IFullCarData, IWinnerDataResponse } from '../../../api/api';
 import { CarImg } from '../../../components/CarImg/CatImg';
 import styles from './WinTable.styles.css';
@@ -10,7 +10,7 @@ interface IPropsType {
 export const WinTable = ({ data }: IPropsType) => {
   const [winnersData, setWinnersData] = useState<IFullCarData[]>([]);
 
-  const getWinnerName = () => {
+  const getWinnerName = useCallback(() => {
     data.forEach((el) => {
       getCar(el.id).then((car) =>
         setWinnersData((prev) => [
@@ -19,7 +19,7 @@ export const WinTable = ({ data }: IPropsType) => {
         ])
       );
     });
-  };
+  }, [data]);
 
   useEffect(() => {
     setWinnersData([]);

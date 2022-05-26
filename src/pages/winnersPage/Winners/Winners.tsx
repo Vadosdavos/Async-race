@@ -1,4 +1,4 @@
-import { SyntheticEvent, useEffect, useState } from 'react';
+import { SyntheticEvent, useCallback, useEffect, useState } from 'react';
 import { getWinners, IWinnerDataResponse } from '../../../api/api';
 import { WinTable } from '../WinTable/WinTable';
 import styles from './Winners.styles.css';
@@ -22,7 +22,7 @@ export const Winners = () => {
     getWinnersState(page);
   }, [page]);
 
-  const handleChangePage = (event: SyntheticEvent) => {
+  const handleChangePage = useCallback((event: SyntheticEvent) => {
     const target = event.target as HTMLElement;
     switch (target.textContent) {
       case 'next':
@@ -32,7 +32,7 @@ export const Winners = () => {
         setPage((prevValue) => prevValue - 1);
         break;
     }
-  };
+  }, []);
 
   return (
     <>

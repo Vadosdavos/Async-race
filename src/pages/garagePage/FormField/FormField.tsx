@@ -1,4 +1,4 @@
-import React, { SyntheticEvent, useRef } from 'react';
+import React, { SyntheticEvent, useCallback, useRef } from 'react';
 import styles from './FormField.styles.css';
 
 type FormProps = {
@@ -13,12 +13,12 @@ export const FormField = React.forwardRef<HTMLInputElement, FormProps>(
   ({ type, handleTextInput, handleColorInput, handleClick, colorUpdateValue }, ref): JSX.Element => {
     const nameRef = useRef<HTMLInputElement>(null);
     const colorRef = useRef<HTMLInputElement>(null);
-    const clearInput = (): void => {
+    const clearInput = useCallback((): void => {
       if (nameRef.current && colorRef.current) {
         nameRef.current.value = '';
         colorRef.current.value = '#000000';
       }
-    };
+    }, [nameRef, colorRef]);
 
     if (type === 'create') {
       return (
