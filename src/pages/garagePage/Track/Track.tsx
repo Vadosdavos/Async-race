@@ -1,4 +1,4 @@
-import { useState, forwardRef } from 'react';
+import { useState, forwardRef, useEffect } from 'react';
 import { ICar, IMove } from '../../../api/api';
 import styles from './Track.styles.css';
 import { CarImg } from '../../../components/CarImg/CatImg';
@@ -10,12 +10,17 @@ type TrackProps = {
   onDelete: (id: number) => void;
   onSelect: (carProps: ICar) => void;
   move: IMove;
+  isRaceActive: boolean;
 };
 
 export const Track = forwardRef<HTMLDivElement, TrackProps>(
-  ({ name, color, id, onDelete, onSelect, move }: TrackProps, ref): JSX.Element => {
+  ({ name, color, id, onDelete, onSelect, move, isRaceActive }: TrackProps, ref): JSX.Element => {
     const carRef = ref as React.RefObject<HTMLDivElement>;
     const [isCarStarted, setIsCarStarted] = useState(false);
+
+    useEffect(() => {
+      setIsCarStarted(isRaceActive);
+    }, [isRaceActive]);
 
     return (
       <>

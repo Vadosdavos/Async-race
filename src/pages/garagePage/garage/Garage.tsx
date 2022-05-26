@@ -260,6 +260,7 @@ export const Garage = (): JSX.Element => {
             onSelect={handleSelect}
             ref={refsArray[index]}
             move={move}
+            isRaceActive={isRaceActive}
           />
         ))}
       <div>
