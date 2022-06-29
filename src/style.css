@@ -20,3 +20,7 @@ button {
   text-transform: uppercase;
   cursor: pointer;
 }
+
+button:disabled {
+  cursor: not-allowed;
+}

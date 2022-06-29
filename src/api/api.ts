@@ -165,3 +165,10 @@ export const updateWinner = async (id: number, body: IWinnerUpdate) =>
 
 export const getWinner = async (id: number): Promise<IWinnerSet> =>
   (await fetch(`${winners}/${id}`)).json();
+
+export const deleteWinner = async (id: number) =>
+  (
+    await fetch(`${winners}/${id}`, {
+      method: "DELETE",
+    })
+  ).json();
