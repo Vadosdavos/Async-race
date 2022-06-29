@@ -20,6 +20,7 @@ import {
   setWinner,
   updateWinner,
   getWinner,
+  deleteWinner,
 } from "../../../api/api";
 import { generateRandomCars } from "../../../api/utils";
 import { FormField } from "../FormField/FormField";
@@ -75,6 +76,7 @@ export const Garage = (): JSX.Element => {
   const handleDelete = useCallback(
     (id: number): void => {
       deleteCar(id);
+      deleteWinner(id);
       setCarNumber((prevCarNumber) => prevCarNumber - 1);
       const index = carsArray.findIndex((el) => el.id === id);
       setCarsArray((prevCarsArray) => [
