@@ -87,11 +87,11 @@ export const Garage = (): JSX.Element => {
         ...prevCarsArray.slice(0, index),
         ...prevCarsArray.slice(index + 1),
       ]);
-      if (carsArray.length === 1) {
+      if (carsArray.length === 1 && page !== 1) {
         setPage((prevValue) => prevValue - 1);
       }
     },
-    [carsArray]
+    [carsArray, page]
   );
 
   const handleTextInput = useCallback(
@@ -331,6 +331,7 @@ export const Garage = (): JSX.Element => {
       <p>Page #{page}</p>
       <section className={styles.tracksContainer}>
         {isLoadActive && <LoadingBar />}
+        {carNumber === 0 && !isLoadActive && "The garage is empty!"}
         {carsArray.length > 0 &&
           !isReset &&
           carsArray.map((el, index) => (
