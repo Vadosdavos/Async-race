@@ -23,6 +23,7 @@ import {
   deleteWinner,
 } from "../../../api/api";
 import { generateRandomCars } from "../../../api/utils";
+import { LoadingBar } from "../../../components/LoadingBar/LoadingBar";
 import { FormField } from "../FormField/FormField";
 import { Track } from "../Track/Track";
 import { WinModal } from "../WinModal/WinModal";
@@ -48,6 +49,7 @@ export const Garage = (): JSX.Element => {
   });
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isRaceActive, setIsRaceActive] = useState(false);
+  const [isLoadActive, setIsLoadActive] = useState(false);
   const refsArray: Array<React.RefObject<HTMLDivElement>> = useMemo(
     () => [],
     []
@@ -55,6 +57,7 @@ export const Garage = (): JSX.Element => {
   const raceDistance = document.documentElement.clientWidth - CAR_MARGIN;
 
   async function getGarageState(curPage: number): Promise<void> {
+    setIsLoadActive(true);
     const { count: carCount, items: cars } = await getCars(curPage);
     if (carCount) {
       setCarNumber(+carCount);
@@ -62,6 +65,7 @@ export const Garage = (): JSX.Element => {
     if (cars) {
       setCarsArray(cars);
     }
+    setIsLoadActive(false);
   }
 
   useEffect(() => {
@@ -151,9 +155,14 @@ export const Garage = (): JSX.Element => {
   );
 
   const handleGenerateCars = useCallback((): void => {
-    generateRandomCars().forEach((el) => setCar(el));
-    getGarageState(page);
-  }, [page]);
+    setIsLoadActive(true);
+    Promise.allSettled(generateRandomCars().map((el) => setCar(el))).then(
+      () => {
+        getGarageState(page);
+        setIsLoadActive(false);
+      }
+    );
+  }, [page, setIsLoadActive]);
 
   const handleChangePage = useCallback((event: SyntheticEvent): void => {
     setIsModalVisible(false);
@@ -308,7 +317,11 @@ export const Garage = (): JSX.Element => {
         >
           Reset
         </button>
-        <button className={styles.controlsBtn} onClick={handleGenerateCars}>
+        <button
+          className={styles.controlsBtn}
+          onClick={handleGenerateCars}
+          disabled={isLoadActive}
+        >
           Generate cars
         </button>
       </section>
@@ -316,21 +329,24 @@ export const Garage = (): JSX.Element => {
         Garage <span>({carNumber})</span>
       </h2>
       <p>Page #{page}</p>
-      {carsArray.length > 0 &&
-        !isReset &&
-        carsArray.map((el, index) => (
-          <Track
-            key={el.id}
-            name={el.name}
-            color={el.color}
-            id={el.id}
-            onDelete={handleDelete}
-            onSelect={handleSelect}
-            ref={refsArray[index]}
-            move={move}
-            isRaceActive={isRaceActive}
-          />
-        ))}
+      <section className={styles.tracksContainer}>
+        {isLoadActive && <LoadingBar />}
+        {carsArray.length > 0 &&
+          !isReset &&
+          carsArray.map((el, index) => (
+            <Track
+              key={el.id}
+              name={el.name}
+              color={el.color}
+              id={el.id}
+              onDelete={handleDelete}
+              onSelect={handleSelect}
+              ref={refsArray[index]}
+              move={move}
+              isRaceActive={isRaceActive}
+            />
+          ))}
+      </section>
       <div>
         <button onClick={handleChangePage} disabled={page <= 1}>
           prev

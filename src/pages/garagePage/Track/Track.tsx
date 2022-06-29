@@ -26,57 +26,49 @@ export const Track = forwardRef<HTMLDivElement, TrackProps>(function Track(
 
   return (
     <>
-      <section>
-        <div className={styles.carContainer}>
-          <div className={styles.controls}>
-            <button
-              className={styles.selectBtn}
-              onClick={() => onSelect({ name, color, id })}
-            >
-              Select
-            </button>
-            <button className={styles.removeBtn} onClick={() => onDelete(id)}>
-              Remove
-            </button>
-            <div className={styles.name}>{name}</div>
-          </div>
-          <div className={styles.road}>
-            <button
-              className={`${styles.startBtn} ${
-                isCarStarted && styles.inactiveBtn
-              }`}
-              onClick={() => {
-                move.start(
-                  { name, color, id },
-                  carRef.current as HTMLDivElement
-                );
-                setIsCarStarted(true);
-              }}
-              disabled={isCarStarted}
-            >
-              A
-            </button>
-            <button
-              className={`${styles.stopBtn} ${
-                !isCarStarted && styles.inactiveBtn
-              }`}
-              onClick={() => {
-                move.stop(
-                  { name, color, id },
-                  carRef.current as HTMLDivElement
-                );
-                setIsCarStarted(false);
-              }}
-              disabled={!isCarStarted}
-            >
-              B
-            </button>
-            <div ref={carRef} className={styles.car}>
-              <CarImg color={color} />
-            </div>
+      <div className={styles.carContainer}>
+        <div className={styles.controls}>
+          <button
+            className={styles.selectBtn}
+            onClick={() => onSelect({ name, color, id })}
+          >
+            Select
+          </button>
+          <button className={styles.removeBtn} onClick={() => onDelete(id)}>
+            Remove
+          </button>
+          <div className={styles.name}>{name}</div>
+        </div>
+        <div className={styles.road}>
+          <button
+            className={`${styles.startBtn} ${
+              isCarStarted && styles.inactiveBtn
+            }`}
+            onClick={() => {
+              move.start({ name, color, id }, carRef.current as HTMLDivElement);
+              setIsCarStarted(true);
+            }}
+            disabled={isCarStarted}
+          >
+            A
+          </button>
+          <button
+            className={`${styles.stopBtn} ${
+              !isCarStarted && styles.inactiveBtn
+            }`}
+            onClick={() => {
+              move.stop({ name, color, id }, carRef.current as HTMLDivElement);
+              setIsCarStarted(false);
+            }}
+            disabled={!isCarStarted}
+          >
+            B
+          </button>
+          <div ref={carRef} className={styles.car}>
+            <CarImg color={color} />
           </div>
         </div>
-      </section>
+      </div>
     </>
   );
 });
