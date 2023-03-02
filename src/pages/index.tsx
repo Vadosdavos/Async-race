@@ -1,123 +1,386 @@
-import Head from 'next/head'
-import Image from 'next/image'
-import { Inter } from 'next/font/google'
-import styles from '@/styles/Home.module.css'
-
-const inter = Inter({ subsets: ['latin'] })
+/* eslint-disable react-hooks/exhaustive-deps */
+import { Layout } from '@/components/layouts/layout';
+import {
+  SyntheticEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import {
+  deleteCar,
+  getCars,
+  ICar,
+  ICarSet,
+  setCar,
+  stopEngine,
+  updateCar,
+  driveMode,
+  startEngine,
+  IWinnerData,
+  setWinner,
+  updateWinner,
+  getWinner,
+  deleteWinner,
+} from '@/utils/api/api';
+import { generateRandomCars } from '@/utils/api/utils';
+import { LoadingBar } from '@/components/loadingBar/loadingBar';
+import styles from '@/styles/garage.module.css';
+import { Track } from '@/components/pages/garage/track/track';
+import { WinModal } from '@/components/pages/garage/winModal/winModal';
+import { FormField } from '@/components/pages/garage/formField/formField';
 
 export default function Home() {
+  const [raceDistance, setRaceDistance] = useState(0);
+  const [carNumber, setCarNumber] = useState(0);
+  const [carsArray, setCarsArray] = useState<ICar[]>([]);
+  const tempCarData: ICarSet = useMemo(() => ({ name: 'testCar', color: '#ffffff' }), []);
+  const updateInputRef = useRef<HTMLInputElement>(null);
+  const [colorUpdateValue, setColorUpdateValue] = useState('#000000');
+  const [tempCarId, setTempCarId] = useState(0);
+  const [page, setPage] = useState(1);
+  const [isReset, setIsReset] = useState(false);
+  const [winnerData, setWinnerData] = useState({
+    id: 0,
+    name: 'No one',
+    time: 0,
+  });
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isRaceActive, setIsRaceActive] = useState(false);
+  const [isLoadActive, setIsLoadActive] = useState(false);
+  const refsArray: Array<React.RefObject<HTMLDivElement>> = useMemo(
+    () => [],
+    [],
+  );
+
+  useEffect(() => {
+    const CAR_MARGIN = 180 + document.documentElement.clientWidth * 0.05;
+    setRaceDistance(document.documentElement.clientWidth - CAR_MARGIN);
+  }, []);
+
+  async function getGarageState(curPage: number): Promise<void> {
+    setIsLoadActive(true);
+    const { count: carCount, items: cars } = await getCars(curPage);
+    if (carCount) {
+      setCarNumber(+carCount);
+    }
+    if (cars) {
+      setCarsArray(cars);
+    }
+    setIsLoadActive(false);
+  }
+
+  useEffect(() => {
+    getGarageState(page);
+  }, [page]);
+
+  for (let i = 0; i < 7; i += 1) {
+    const element = useRef<HTMLDivElement>(null);
+    refsArray.push(element);
+  }
+
+  const handleDelete = useCallback(
+    (id: number): void => {
+      deleteCar(id);
+      deleteWinner(id);
+      setCarNumber((prevCarNumber) => prevCarNumber - 1);
+      const index = carsArray.findIndex((el) => el.id === id);
+      setCarsArray((prevCarsArray) => [
+        ...prevCarsArray.slice(0, index),
+        ...prevCarsArray.slice(index + 1),
+      ]);
+      if (carsArray.length === 1 && page !== 1) {
+        setPage((prevValue) => prevValue - 1);
+      }
+    },
+    [carsArray, page],
+  );
+
+  const handleTextInput = useCallback(
+    (event: SyntheticEvent): void => {
+      const target = event.currentTarget as HTMLInputElement;
+      tempCarData.name = target.value;
+    },
+    [tempCarData],
+  );
+
+  const handleColorInput = useCallback(
+    (event: SyntheticEvent): void => {
+      const target = event.currentTarget as HTMLInputElement;
+      tempCarData.color = target.value;
+    },
+    [tempCarData],
+  );
+
+  const handleCreateClick = useCallback((): void => {
+    const res = setCar({
+      name: tempCarData.name,
+      color: tempCarData.color,
+    });
+    if (carsArray.length < 7) {
+      res.then((data: ICar) => setCarsArray((prevCarsArray) => [...prevCarsArray, data]));
+    }
+    setCarNumber((prevCarNumber) => prevCarNumber + 1);
+  }, [tempCarData, carsArray]);
+
+  const handleUpdateClick = useCallback((): void => {
+    const updateInputText = updateInputRef.current as HTMLInputElement;
+    const newName = updateInputText.value;
+    const newColor = tempCarData.color ? tempCarData.color : colorUpdateValue;
+    updateCar(tempCarId, {
+      name: newName,
+      color: newColor,
+    });
+    const index = carsArray.findIndex((el) => el.id === tempCarId);
+    setCarsArray((prevCarsArray) => {
+      const newArr = [...prevCarsArray];
+      newArr[index].name = newName;
+      newArr[index].color = newColor;
+      return newArr;
+    });
+    updateInputText.disabled = true;
+    updateInputText.value = '';
+  }, [updateInputRef, tempCarData, carsArray, colorUpdateValue, tempCarId]);
+
+  const handleSelect = useCallback(
+    (carProps: ICar): void => {
+      const updateInputText = updateInputRef.current as HTMLInputElement;
+      updateInputText.focus();
+      updateInputText.disabled = false;
+      updateInputText.value = carProps.name;
+      setColorUpdateValue(carProps.color);
+      setTempCarId(carProps.id);
+    },
+    [updateInputRef],
+  );
+
+  const handleGenerateCars = useCallback((): void => {
+    setIsLoadActive(true);
+    Promise.allSettled(generateRandomCars().map((el) => setCar(el))).then(
+      () => {
+        getGarageState(page);
+        setIsLoadActive(false);
+      },
+    );
+  }, [page, setIsLoadActive]);
+
+  const handleChangePage = useCallback((event: SyntheticEvent): void => {
+    setIsModalVisible(false);
+    setIsRaceActive(false);
+    const target = event.target as HTMLElement;
+    switch (target.textContent) {
+      case 'next':
+        setPage((prevValue) => prevValue + 1);
+        break;
+      case 'prev':
+        setPage((prevValue) => prevValue - 1);
+        break;
+      default:
+        setPage(1);
+    }
+  }, []);
+
+  const handleResetClick = useCallback((): void => {
+    setIsRaceActive((prev) => !prev);
+    setIsReset(true);
+    carsArray.forEach((el) => stopEngine(el.id));
+    setTimeout(() => {
+      setIsReset(false);
+    }, 0);
+    setWinnerData({ id: 0, name: '', time: 0 });
+    setIsModalVisible(false);
+  }, [carsArray]);
+
+  const move: {
+    carAnim: { [key: string]: number };
+    anim: (
+      duration: number,
+      start: number,
+      target: HTMLDivElement,
+      carProps: ICar
+    ) => void;
+    start: (carProps: ICar, target: HTMLDivElement) => Promise<IWinnerData>;
+    stop: (carProps: ICar, target: HTMLDivElement) => void;
+  } = {
+    carAnim: {},
+    anim: (
+      duration: number,
+      start: number,
+      target: HTMLDivElement,
+      carProps: ICar,
+    ): void => {
+      const element = target;
+      let timeFraction = (performance.now() - start) / duration;
+      if (timeFraction > 1) {
+        timeFraction = 1;
+      }
+      element.style.transform = `translateX(${timeFraction * raceDistance}px)`;
+      if (timeFraction < 1) {
+        move.carAnim[carProps.id] = requestAnimationFrame(() => move.anim(
+          duration,
+          start,
+          target,
+          carProps,
+        ));
+      }
+    },
+    start: (
+      carProps: ICar,
+      target: HTMLDivElement,
+    ): Promise<IWinnerData> => new Promise((resolve, reject) => {
+      startEngine(carProps.id).then(
+        ({ distance, velocity }: { distance: number; velocity: number }) => {
+          const time = distance / velocity;
+          const start = performance.now();
+          move.carAnim[carProps.id] = requestAnimationFrame(() => {
+            move.anim(time, start, target, carProps);
+          });
+          driveMode(carProps.id).then((res) => {
+            if (!res.success) {
+              cancelAnimationFrame(move.carAnim[carProps.id]);
+              reject(
+                new Error(`The engine has stopped Car name: ${carProps.name}`),
+              );
+            } else {
+              resolve({
+                id: carProps.id,
+                name: carProps.name,
+                time: Number((time / 1000).toFixed(2)),
+              });
+            }
+          });
+        },
+      );
+    }),
+    stop: (carProps: ICar, target: HTMLDivElement): void => {
+      stopEngine(carProps.id).then(() => {
+        cancelAnimationFrame(move.carAnim[carProps.id]);
+        const element = target;
+        element.style.transform = 'translateX(0)';
+      });
+    },
+  };
+
+  const handleRaceClick = useCallback((): void => {
+    setIsRaceActive((prev) => !prev);
+    const promisesArr: Promise<IWinnerData>[] = [];
+    refsArray.forEach((el, index) => (el.current
+      ? promisesArr.push(move.start(carsArray[index], el.current))
+      : null));
+    Promise.any(promisesArr)
+      .then((data) => {
+        if (data) {
+          setWinnerData(data);
+          getWinner(data.id).then((response) => {
+            if (Object.keys(response).length === 0) {
+              setWinner({ id: data.id, wins: 1, time: data.time });
+            } else {
+              updateWinner(response.id, {
+                wins: response.wins + 1,
+                time: data.time < response.time ? data.time : response.time,
+              });
+            }
+          });
+        }
+        setIsModalVisible(true);
+      })
+      .catch(Error);
+  }, [refsArray, carsArray, move]);
+
   return (
-    <>
-      <Head>
-        <title>Create Next App</title>
-        <meta name="description" content="Generated by create next app" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-      <main className={styles.main}>
-        <div className={styles.description}>
-          <p>
-            Get started by editing&nbsp;
-            <code className={styles.code}>src/pages/index.tsx</code>
-          </p>
-          <div>
-            <a
-              href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              By{' '}
-              <Image
-                src="/vercel.svg"
-                alt="Vercel Logo"
-                className={styles.vercelLogo}
-                width={100}
-                height={24}
-                priority
-              />
-            </a>
-          </div>
-        </div>
-
-        <div className={styles.center}>
-          <Image
-            className={styles.logo}
-            src="/next.svg"
-            alt="Next.js Logo"
-            width={180}
-            height={37}
-            priority
-          />
-          <div className={styles.thirteen}>
-            <Image
-              src="/thirteen.svg"
-              alt="13"
-              width={40}
-              height={31}
-              priority
+    <Layout>
+      <section className={styles.controls}>
+        <FormField
+          type="create"
+          handleTextInput={handleTextInput}
+          handleColorInput={handleColorInput}
+          handleClick={handleCreateClick}
+          ref={undefined}
+        />
+        <FormField
+          type="update"
+          handleTextInput={handleTextInput}
+          handleColorInput={handleColorInput}
+          handleClick={handleUpdateClick}
+          ref={updateInputRef}
+          colorUpdateValue={colorUpdateValue}
+        />
+        <button
+          className={styles.controlsBtn}
+          onClick={handleRaceClick}
+          disabled={isRaceActive}
+        >
+          Race
+        </button>
+        <button
+          className={styles.controlsBtn}
+          onClick={handleResetClick}
+          disabled={!isRaceActive}
+        >
+          Reset
+        </button>
+        <button
+          className={styles.controlsBtn}
+          onClick={handleGenerateCars}
+          disabled={isLoadActive}
+        >
+          Generate cars
+        </button>
+      </section>
+      <h2 className={styles.title}>
+        Garage
+        {' '}
+        <span>
+          (
+          {carNumber}
+          )
+        </span>
+      </h2>
+      <p>
+        Page #
+        {page}
+      </p>
+      <section className={styles.tracksContainer}>
+        {isLoadActive && <LoadingBar />}
+        {carNumber === 0 && !isLoadActive && 'The garage is empty!'}
+        {carsArray.length > 0
+          && !isReset
+          && carsArray.map((el, index) => (
+            <Track
+              key={el.id}
+              name={el.name}
+              color={el.color}
+              id={el.id}
+              onDelete={handleDelete}
+              onSelect={handleSelect}
+              ref={refsArray[index]}
+              move={move}
+              isRaceActive={isRaceActive}
             />
-          </div>
-        </div>
-
-        <div className={styles.grid}>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Docs <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Find in-depth information about Next.js features and&nbsp;API.
-            </p>
-          </a>
-
-          <a
-            href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Learn <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Learn about Next.js in an interactive course with&nbsp;quizzes!
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Templates <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Discover and deploy boilerplate example Next.js&nbsp;projects.
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Deploy <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Instantly deploy your Next.js site to a shareable URL
-              with&nbsp;Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
-    </>
-  )
+          ))}
+      </section>
+      <div>
+        <button onClick={handleChangePage} disabled={page <= 1}>
+          prev
+        </button>
+        <button
+          className={styles.paginationBtn}
+          onClick={handleChangePage}
+          disabled={carNumber / 7 <= page}
+        >
+          next
+        </button>
+        {isModalVisible && (
+          <WinModal>
+            {winnerData.name}
+            {' '}
+            won first (
+            {winnerData.time}
+            )!
+          </WinModal>
+        )}
+      </div>
+    </Layout>
+  );
 }

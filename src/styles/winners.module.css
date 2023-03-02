@@ -1,0 +1,14 @@
+.winners {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  width: 344px;
+}
+
+.paginationBtn {
+  margin-left: 20px;
+}
+
+.btnContainer {
+  margin-top: 10px;
+}
