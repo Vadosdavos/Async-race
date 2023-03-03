@@ -55,6 +55,11 @@ export default function Home() {
   );
 
   useEffect(() => {
+    const start = fetch('/api/start');
+    start.then((res) => res.json().then((data) => console.log(data.message)));
+  }, []);
+
+  useEffect(() => {
     const CAR_MARGIN = 180 + document.documentElement.clientWidth * 0.05;
     setRaceDistance(document.documentElement.clientWidth - CAR_MARGIN);
   }, []);
