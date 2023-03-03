@@ -1,4 +1,4 @@
-const base = 'http://localhost:3001';
+const base = 'https://async-race-lemon.vercel.app/';
 const garage = `${base}/garage`;
 const engine = `${base}/engine`;
 const winners = `${base}/winners`;
