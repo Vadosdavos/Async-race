@@ -1,4 +1,4 @@
-const base = "https://young-tor-36011.herokuapp.com";
+const base = "https://nodejs-production-2b7b.up.railway.app";
 const garage = `${base}/garage`;
 const engine = `${base}/engine`;
 const winners = `${base}/winners`;
